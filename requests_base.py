@@ -4,44 +4,36 @@ from datetime import datetime
 import json
 
 
-def make_request(base_url: str, headers: dict, params: dict, request_type: str='GET') -> json:
-    """Executes the request specified through the arguments and returns the response as JSON
-
-    :param base_url: base_url of endpoint, e.g. https://api.twitter.com/2/tweets/search/recent
-    :param headers: headers of request, can be created with create_headers
-    :param params: parameter for request, can be created with create_params
-    :param request_type: 'GET' or 'POST'
-    :raises Exception if a status code other than 200 is returned
-    :return: Result of request as returned by the API
-
-    """
-    response = requests.request(request_type, base_url, headers=headers, params=params)
-    print(response.status_code)
-    if response.status_code != 200:
-        raise Exception(response.status_code, response.text)
-    return response.json()
-
-def auth() -> str:
+def auth(bearer_token: str = 'TWT_BEARER_TOKEN') -> str:
     """Returns the bearer token specified in OS: To set your environment variables in your
-    terminal run the following line: export 'BEARER_TOKEN'='<your_bearer_token>'"""
+    terminal run the following line: export 'TWT_BEARER_TOKEN'='<your_bearer_token>'
 
-    return os.environ.get("BEARER_TOKEN")
+    :param: optional custom name for environment variable that contains the bearer token
+    :return: bearer token as string
+    """
 
-def create_headers(bearer_token: str=auth()) -> dict:
-    """Returns the headers needed for making a Twitter API Request (incl. Authentification)
+    try:
+        return os.environ.get(bearer_token)
+    except Exception as e:
+        raise Exception(f'Failed to load authentification {bearer_token} from environment variables: {e}')
+
+
+def create_headers(bearer_token: str = None) -> dict:
+    """Returns the headers needed for making a Twitter API Request (incl. authentification)
 
     :param bearer_token: bearer token used for authentification in Twitter API
-    :return: Headers neaded for making a Twitter API request
+    :return: Headers needed for making a Twitter API request
 
     """
+    if not bearer_token:
+        bearer_token = auth()
     headers = {"Authorization": "Bearer {}".format(bearer_token)}
     return headers
 
 
-
-def create_params(query: str, max_results: int=None, fields: list=None,
-                  start_time: datetime=None, end_time: datetime=None, next_token: str=None):
-    """Create a params dictionary that can be passed to connect_to_endpoint. If none is specified for any
+def create_params(query: str, max_results: int = None, fields: list = None,
+                  start_time: datetime = None, end_time: datetime = None, next_token: str = None):
+    """Create a params dictionary that can be passed to make_request. If none is specified for any
     of the arguments, the Twitter API default will be used.
     :param query: query to be searched
     :param max_results: max_amount of tweets to be returned; Twitter API allows values between 1 and 100.
@@ -59,6 +51,7 @@ def create_params(query: str, max_results: int=None, fields: list=None,
     if max_results:
         params['max_results'] = max_results
     if fields:
+        # TODO some parsing needs to happen here!
         params['fields'] = fields
     if start_time:
         params['start_time'] = start_time
@@ -68,3 +61,23 @@ def create_params(query: str, max_results: int=None, fields: list=None,
         params['next_token'] = next_token
 
     return params
+
+
+def make_request(base_url: str, params: dict, headers: dict = None, request_type: str = 'GET') -> json:
+    """Executes the request specified through the arguments and returns the response as JSON
+
+    :param base_url: base_url of endpoint, e.g. https://api.twitter.com/2/tweets/search/recent
+    :param params: parameter for request, can be created with create_params
+    :param headers: headers of request, can be created with create_headers
+    :param request_type: 'GET' or 'POST'
+    :raises Exception if a status code other than 200 is returned
+    :return: Result of request as returned by the API
+
+    """
+    if not headers:
+        headers = create_headers()
+    response = requests.request(request_type, base_url, headers=headers, params=params)
+    print(response.status_code)
+    if response.status_code != 200:
+        raise Exception(response.status_code, response.text)
+    return response.json()
