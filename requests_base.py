@@ -31,7 +31,7 @@ def create_headers(bearer_token: str = None) -> dict:
     return headers
 
 
-def create_params(query: str, max_results: int = None, fields: Sequence[str] = None,
+def create_params(query: str, max_results: int = 100, fields: Sequence[str] = None,
                   start_time: datetime = None, end_time: datetime = None, next_token: str = None):
     """Create a params dictionary that can be passed to make_request. If none is specified for any
     of the arguments, the Twitter API default will be used.
@@ -53,9 +53,9 @@ def create_params(query: str, max_results: int = None, fields: Sequence[str] = N
     if fields:
         params['tweet.fields'] = ','.join(fields)  # TWT API expects comma separated list
     if start_time:
-        params['start_time'] = start_time
+        params['start_time'] = start_time.isoformat()
     if end_time:
-        params['end_time'] = end_time
+        params['end_time'] = end_time.isoformat()
     if next_token:
         params['next_token'] = next_token
 
@@ -76,7 +76,6 @@ def make_request(base_url: str, params: dict, headers: dict = None, request_type
     if not headers:
         headers = create_headers()
     response = requests.request(request_type, base_url, headers=headers, params=params)
-    print(response.status_code)
     if response.status_code != 200:
         raise Exception(response.status_code, response.text)
     return response.json()

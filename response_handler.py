@@ -3,6 +3,7 @@ import csv
 import os
 from typing import Sequence, Dict
 
+
 def write_to_csv(response_data: Sequence[Dict], filename: str) -> None:
     """
     Appends the specified response dictionary to a .csv specified
@@ -22,6 +23,7 @@ def write_to_csv(response_data: Sequence[Dict], filename: str) -> None:
             spamwriter.writerow(row.values())
 
     # TODO this should probably at least throw a warning if the file does not exist
+
 
 def flatten_response(response: Sequence[Dict]) -> Sequence[Dict]:
     """
