@@ -1,7 +1,7 @@
 import requests
 import os
 from datetime import datetime
-import json
+from typing import Sequence
 
 
 def auth(bearer_token: str = 'TWT_BEARER_TOKEN') -> str:
@@ -31,7 +31,7 @@ def create_headers(bearer_token: str = None) -> dict:
     return headers
 
 
-def create_params(query: str, max_results: int = None, fields: list = None,
+def create_params(query: str, max_results: int = None, fields: Sequence[str] = None,
                   start_time: datetime = None, end_time: datetime = None, next_token: str = None):
     """Create a params dictionary that can be passed to make_request. If none is specified for any
     of the arguments, the Twitter API default will be used.
@@ -51,8 +51,7 @@ def create_params(query: str, max_results: int = None, fields: list = None,
     if max_results:
         params['max_results'] = max_results
     if fields:
-        # TODO some parsing needs to happen here!
-        params['fields'] = fields
+        params['tweet.fields'] = ','.join(fields)  # TWT API expects comma separated list
     if start_time:
         params['start_time'] = start_time
     if end_time:
@@ -63,14 +62,14 @@ def create_params(query: str, max_results: int = None, fields: list = None,
     return params
 
 
-def make_request(base_url: str, params: dict, headers: dict = None, request_type: str = 'GET') -> json:
+def make_request(base_url: str, params: dict, headers: dict = None, request_type: str = 'GET') -> dict:
     """Executes the request specified through the arguments and returns the response as JSON
 
     :param base_url: base_url of endpoint, e.g. https://api.twitter.com/2/tweets/search/recent
     :param params: parameter for request, can be created with create_params
     :param headers: headers of request, can be created with create_headers
     :param request_type: 'GET' or 'POST'
-    :raises Exception if a status code other than 200 is returned
+    :raise Exception: if a status code other than 200 is returned
     :return: Result of request as returned by the API
 
     """
