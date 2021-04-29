@@ -1,9 +1,10 @@
 from requests_base import make_request, create_params
-from response_handler import flatten_response, write_to_csv
+from response_handler import buffer_missing_fields, write_to_csv
 from time import sleep
 from typing import Tuple, Optional, List, Dict
 from datetime import datetime, timedelta, timezone
 
+from pprint import pprint
 
 RECENT_SEARCH_URL = 'https://api.twitter.com/2/tweets/search/recent'
 
@@ -27,6 +28,7 @@ def recent_search(params: dict, headers: dict = None,
 
         response = make_request(RECENT_SEARCH_URL, params, headers)
 
+        response['data'] = buffer_missing_fields(response['data'], params['tweet.fields'].split(','))
         if response['meta']['result_count'] == 0:
             print("Empty response")
             return total_results, None
@@ -69,7 +71,7 @@ if __name__ == "__main__":
                                media_fields=req_media_fields,
                                start_time=a_while_ago)
 
-    results, res_next_token = recent_search(req_params)
+    results, res_next_token = recent_search(req_params, tweet_fetch_limit=100)
 
     # TODO WE NEED TO FILL FIELDS THAT ARE NOT RETURNED WITH SOMETHING LIKE "NONE" OR "FALSE" ( a default value), e.g.
     # for 'withheld' or 'geo'
@@ -81,6 +83,5 @@ if __name__ == "__main__":
         # TODO log meta information for responses (when conducted for which params, next_token passed?)
         print(f'Next token for response was {res_next_token}. Should include a meta logging here for the responses!')
 
-    write_to_csv(flatten_response(results), 'data/eggs.csv')
-    # print(json.dumps(json_response, indent=4, sort_keys=True))
-    # print(json.dumps(flatten_response(json_response['data']), indent=4))
+    pprint(results)
+    write_to_csv(results, 'data/egge.csv')
