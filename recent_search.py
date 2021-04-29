@@ -26,6 +26,11 @@ def recent_search(params: dict, headers: dict = None,
             params['next_token'] = next_token
 
         response = make_request(RECENT_SEARCH_URL, params, headers)
+
+        if response['meta']['result_count'] == 0:
+            print("Empty response")
+            return total_results, None
+
         total_results.extend(response['data'])
 
         if len(total_results) >= tweet_fetch_limit:
@@ -49,11 +54,21 @@ if __name__ == "__main__":
     a_while_ago = datetime.now(timezone.utc) - timedelta(hours=5)
     # TODO -> Would be nice to automatically read the last timestamp for a specific hashtag and then
     #  continue fetching from there (maybe put each hashtag in a separate file?)
+
+    req_field = [
+                    'attachments', 'author_id', 'conversation_id', 'created_at', 'entities', 'geo', 'id',
+                    'in_reply_to_user_id', 'lang', 'public_metrics', 'possibly_sensitive',
+                    'referenced_tweets', 'reply_settings', 'source', 'text'
+                ]
+    req_user_fields = ['id', 'username', 'withheld', 'location', 'verified', 'public_metrics']
+    req_media_fields = ['type', 'url', 'public_metrics'] #'media_key',
+
     req_params = create_params(query='#pinkygloves',
-                               fields=['id', 'text', 'created_at', 'public_metrics', 'possibly_sensitive',
-                                       'lang', 'entities', 'referenced_tweets', 'reply_settings',
-                                       'conversation_id'],
+                               fields=req_field,
+                               user_fields=req_user_fields,
+                               media_fields=req_media_fields,
                                start_time=a_while_ago)
+
     results, res_next_token = recent_search(req_params)
 
     # TODO WE NEED TO FILL FIELDS THAT ARE NOT RETURNED WITH SOMETHING LIKE "NONE" OR "FALSE" ( a default value), e.g.
@@ -61,7 +76,7 @@ if __name__ == "__main__":
 
     # TODO EXTENSIONS FOR USERS AND MATCHING THE DATA FROM 'includes' SO THEY ARE WRITTEN IN THE SAME CSV ROW
 
-    
+
     if res_next_token:
         # TODO log meta information for responses (when conducted for which params, next_token passed?)
         print(f'Next token for response was {res_next_token}. Should include a meta logging here for the responses!')

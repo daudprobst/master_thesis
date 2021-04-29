@@ -32,15 +32,18 @@ def create_headers(bearer_token: str = None) -> dict:
 
 
 def create_params(query: str, max_results: int = 100, fields: Sequence[str] = None,
+                  media_fields: Sequence[str] = None, user_fields: Sequence[str] = None,
                   start_time: datetime = None, end_time: datetime = None, next_token: str = None):
     """Create a params dictionary that can be passed to make_request. If none is specified for any
     of the arguments, the Twitter API default will be used.
     :param query: query to be searched
     :param max_results: max_amount of tweets to be returned; Twitter API allows values between 1 and 100.
     :param fields: all fields to be returned; default Twitter API returns 'text' and 'id'
-    :param start_time: time from which tweets are fetched; default Twitter API start_time is 7 days ago; this can't be
-    longer than 7 days ago for the standard access since the standard access only allows fetching the past seven days.
-    :param end_time: time until which tweets are fetched; 7 days limit from start_time applies as well.
+    :param media_fields: all media_fields to be returned
+    :param user_fields: all user_fields to be returned
+    :param start_time: time from which tweets are fetched (inclusive); default Twitter API start_time is 7 days ago;
+    standard access only allows fetching back max. 7 days
+    :param end_time: time until which tweets are fetched (exclusive)
     :param next_token: next_token is only used for pagination, i.e. for retrieving results when there are more then
     100 results; a next_token will be included in the response which can be used for the next request in that case
     :returns: parameters for making the API request as a dictionary
@@ -48,6 +51,21 @@ def create_params(query: str, max_results: int = 100, fields: Sequence[str] = No
 
     params = {'query': query}
 
+    expansions = []
+    if media_fields:
+        if not 'attachments' in fields:
+            fields.append('attachments') # we need the attachments.media id for matching
+        expansions.append('attachments.media_keys')
+        #params['media.fields'] = media_fields
+
+    if user_fields:
+        if not 'author_id' in fields:
+            fields.append('author_id') # we need author id for matching
+        expansions.append('author_id')
+        #params['user.fields'] = user_fields
+
+    if expansions:
+        params['expansions'] = ','.join(expansions)
     if max_results:
         params['max_results'] = max_results
     if fields:
@@ -78,4 +96,6 @@ def make_request(base_url: str, params: dict, headers: dict = None, request_type
     response = requests.request(request_type, base_url, headers=headers, params=params)
     if response.status_code != 200:
         raise Exception(response.status_code, response.text)
+
+    #### TODO Handling error responses! (coudl also be done in response obj)
     return response.json()
