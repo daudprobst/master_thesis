@@ -1,7 +1,7 @@
 import pandas as pd
 import csv
 import os
-from typing import Sequence, Dict
+from typing import Sequence, Dict, List, Union
 import collections
 
 def buffer_missing_fields(response_data: Sequence[Dict], fields: Sequence[str]) -> Sequence[Dict]:
@@ -11,9 +11,22 @@ def buffer_missing_fields(response_data: Sequence[Dict], fields: Sequence[str]) 
                 response[field] = ''
     return response_data
 
-def match_includes(response_data: Dict) -> Sequence[Dict]:
-    pass
 
+def match_includes(response_data: Dict, media_fields: List[str], user_fields: List[str]) -> List[Dict]:
+    """Takes a full response object and combines data fields with the matching
+    includes for users and media. Returns a list of the combined data fields"""
+
+    if 'includes' not in response_data:
+        print("Warning: No includes where found. Returning data only.")
+        return response_data['data']
+
+    if 'media' in response_data:
+        pass
+        #probably loop through all media includes they are rare anyways
+
+    #user includes should be solveable with a itertools zip as they always have the same length
+
+    return response_data['data']
 
 def write_to_csv(response_data: Sequence[Dict], filename: str) -> None:
     """
@@ -45,8 +58,7 @@ def flatten_response(response: Sequence[Dict]) -> Sequence[Dict]:
     return output
 
 
-
-def flatten(dictionary, parent_key=False, separator='_'):
+def flatten(dictionary: Dict, parent_key=False, separator: str='_') -> Dict:
     """
     Turn a nested dictionary into a flattened dictionary
     Originally authored by ScriptSmith

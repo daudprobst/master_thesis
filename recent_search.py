@@ -1,8 +1,11 @@
 from requests_base import make_request, create_params
-from response_handler import buffer_missing_fields, write_to_csv
+from response_handler import buffer_missing_fields, write_to_csv, flatten
 from time import sleep
 from typing import Tuple, Optional, List, Dict
 from datetime import datetime, timedelta, timezone
+from db.schemes import *
+from db.connection import connect_to_mongo
+from json import dumps
 
 from pprint import pprint
 
@@ -28,10 +31,22 @@ def recent_search(params: dict, headers: dict = None,
 
         response = make_request(RECENT_SEARCH_URL, params, headers)
 
-        response['data'] = buffer_missing_fields(response['data'], params['tweet.fields'].split(','))
         if response['meta']['result_count'] == 0:
             print("Empty response")
             return total_results, None
+
+        connect_to_mongo()
+        # TODO TMP EMPTY DB
+        Tweets.objects().delete()
+        for entry in response['data']:
+            entry['test_id'] = entry['id']
+            entry.pop('id')
+
+            print(dumps(entry))
+            Tweets.from_json(dumps(entry)).save(force_insert=True)
+
+        # matched_response_data = matched_response_data(response, )
+        response['data'] = buffer_missing_fields(response['data'], params['tweet.fields'].split(','))
 
         total_results.extend(response['data'])
 
@@ -60,7 +75,7 @@ if __name__ == "__main__":
     req_field = [
                     'attachments', 'author_id', 'conversation_id', 'created_at', 'entities', 'geo', 'id',
                     'in_reply_to_user_id', 'lang', 'public_metrics', 'possibly_sensitive',
-                    'referenced_tweets', 'reply_settings', 'source', 'text'
+                    'referenced_tweets', 'source', 'text'
                 ]
     req_user_fields = ['id', 'username', 'withheld', 'location', 'verified', 'public_metrics']
     req_media_fields = ['type', 'url', 'public_metrics'] #'media_key',
@@ -69,9 +84,10 @@ if __name__ == "__main__":
                                fields=req_field,
                                user_fields=req_user_fields,
                                media_fields=req_media_fields,
-                               start_time=a_while_ago)
+                               start_time=a_while_ago,
+                               max_results=10) #TODO remove!
 
-    results, res_next_token = recent_search(req_params, tweet_fetch_limit=100)
+    results, res_next_token = recent_search(req_params, tweet_fetch_limit=10) #TODO remove!
 
     # TODO WE NEED TO FILL FIELDS THAT ARE NOT RETURNED WITH SOMETHING LIKE "NONE" OR "FALSE" ( a default value), e.g.
     # for 'withheld' or 'geo'
