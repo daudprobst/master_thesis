@@ -67,6 +67,7 @@ class TwitterSearchResponse:
         Writes Tweet data (without user includes) to a specified csv file
         :param filename: full filepath specified for the .csv
         """
+        self.buffer_missing_fields()
         # ordered dict work in Python 3.7+
         response_data_sorted = [dict(sorted(row.items())) for row in self.tweets()]
         if not os.path.exists(filename):
@@ -88,6 +89,9 @@ class TwitterSearchResponse:
             for field in self._search_params['tweet.fields'].split(','):
                 if field not in tweet:
                     tweet[field] = ''
+            # We manually add media with attach_media_to_tweets()
+            if 'media' not in tweet:
+                tweet['media'] = ''
         return self.tweets()
 
 
