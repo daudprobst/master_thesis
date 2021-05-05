@@ -2,7 +2,7 @@ import requests
 import os
 from datetime import datetime
 from typing import Sequence
-
+from TwitterSearchResponse import TwitterSearchResponse
 
 def auth(bearer_token: str = 'TWT_BEARER_TOKEN') -> str:
     """Returns the bearer token specified in OS: To set your environment variables in your
@@ -33,7 +33,8 @@ def create_headers(bearer_token: str = None) -> dict:
 
 def create_params(query: str, max_results: int = 100, fields: Sequence[str] = None,
                   media_fields: Sequence[str] = None, user_fields: Sequence[str] = None,
-                  start_time: datetime = None, end_time: datetime = None, next_token: str = None):
+                  start_time: datetime = None, end_time: datetime = None,
+                  next_token: str = None) -> dict:
     """Create a params dictionary that can be passed to make_request. If none is specified for any
     of the arguments, the Twitter API default will be used.
     :param query: query to be searched
@@ -80,7 +81,7 @@ def create_params(query: str, max_results: int = 100, fields: Sequence[str] = No
     return params
 
 
-def make_request(base_url: str, params: dict, headers: dict = None, request_type: str = 'GET') -> dict:
+def make_request(base_url: str, params: dict, headers: dict = None, request_type: str = 'GET') -> TwitterSearchResponse:
     """Executes the request specified through the arguments and returns the response as JSON
 
     :param base_url: base_url of endpoint, e.g. https://api.twitter.com/2/tweets/search/recent
@@ -97,5 +98,4 @@ def make_request(base_url: str, params: dict, headers: dict = None, request_type
     if response.status_code != 200:
         raise Exception(response.status_code, response.text)
 
-    #### TODO Handling error responses! (coudl also be done in response obj)
-    return response.json()
+    return TwitterSearchResponse(response.json(), params)

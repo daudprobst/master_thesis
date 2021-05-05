@@ -34,6 +34,7 @@ class Tweets(Document):
     possibly_sensitive = BooleanField()
     withheld = BooleanField(default=False)
     reply_settings = StringField()
+    in_reply_to_user_id = StringField()
     source = StringField()
     lang = StringField()
     public_metrics = EmbeddedDocumentField('TweetPublicMetrics')
@@ -42,7 +43,7 @@ class Tweets(Document):
     attachments = DictField()  # make more specific?
     geo = DynamicField()
     referenced_tweets = ListField(EmbeddedDocumentField('TweetReference'))
-    #media = EmbeddedDocumentField('TwitterMedia')  # we store media directly in the tweet
+    media = EmbeddedDocumentField('TwitterMedia')  # we store media directly in the tweet
     fetch_date = DateTimeField(default=datetime.utcnow)
 
 

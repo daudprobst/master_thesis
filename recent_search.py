@@ -1,11 +1,12 @@
 from requests_base import make_request, create_params
-from response_handler import buffer_missing_fields, write_to_csv, flatten, TwitterSearchResponse
 from time import sleep
 from typing import Tuple, Optional, List, Dict
 from datetime import datetime, timedelta, timezone
 from db.schemes import *
 from db.connection import connect_to_mongo
 from json import dumps
+import os
+import csv
 
 from pprint import pprint
 
@@ -14,60 +15,57 @@ RECENT_SEARCH_URL = 'https://api.twitter.com/2/tweets/search/recent'
 
 
 def recent_search(params: dict, headers: dict = None,
-                  tweet_fetch_limit: int = 1000) -> Tuple[List[Dict], Optional[str]]:
+                  tweet_fetch_limit: int = 1000) -> Dict:
     """
-    :param params:
-    :param headers:
-    :param tweet_fetch_limit:
+    :param params: the parameters for the Twitter search (use create_params() to build this)
+    :param headers: Headers for connecting to Twitter API; default values are set in requests_base
+    :param tweet_fetch_limit: if more than this amount of tweets has been fetched, the search is stopped
     :return:
     """
 
-    total_results = []
+    fetch_report = {
+        "tweet_fetch_limit": tweet_fetch_limit,
+        "started_fetching": datetime.now().isoformat(),
+        "finished_fetching": '',
+        "fetched_total": 0,
+        "next_token": '',
+        "params": params
+    }
+    fetched_total = 0
     next_token = None
 
     # Paginating through the result if there is more than the 100 limit can provide
-    while next_token or not total_results:
+    while next_token or fetched_total <= 0:
         if next_token:  # always the case except for the first request
             params['next_token'] = next_token
 
         response = make_request(RECENT_SEARCH_URL, params, headers)
 
-        respObj = TwitterSearchResponse(response)
-        print(respObj.attach_media_to_tweets())
-        if response['meta']['result_count'] == 0:
-            print("Empty response")
-            return total_results, None
+        print(f'Fetched some new tweets! {response.meta()}')
+        if(response.meta()['result_count'] == 0 and fetched_total == 0):
+            print("No results were found for this query!")
+            break
 
-        connect_to_mongo()
-        # TODO TMP EMPTY DB
-        #Tweets.objects().delete()
-        #for entry in response['data']:
-        #    entry['test_id'] = entry['id']
-        #    entry.pop('id')
-        #
-        #    print(dumps(entry))
-        #    Tweets.from_json(dumps(entry)).save(force_insert=True)
+        fetched_total += response.meta()['result_count']
 
-        # matched_response_data = matched_response_data(response, )
-        response['data'] = buffer_missing_fields(response['data'], params['tweet.fields'].split(','))
+        response.write_to_db()
+        response.write_to_csv('data/egge.csv')
 
-        total_results.extend(response['data'])
+        next_token = response.next_token()
 
-        if len(total_results) >= tweet_fetch_limit:
+        if fetched_total >= tweet_fetch_limit:
             print(f'Fetched at least as much tweets as the fetch limit.'
                   f'Aborting process here but returning last next_token')
-            return total_results, response['meta']
+            break
 
-        if 'next_token' in response['meta']:
-            next_token = response['meta']['next_token']
-            print(f'Fetched {len(total_results)}. More to Come!')
-            # to respect the 180 tweets per 15min request cap, we aim for one request every 6s
+        if next_token:
+            # Wait for 6s so there are not too many requests in a short time (API limit from twitter)
             sleep(6)
-        else:
-            next_token = None
 
-    # ALl tweets for search query are fetched
-    return total_results, None
+    fetch_report['finished_fetching'] = datetime.now().isoformat()
+    fetch_report['fetched_total'] = fetched_total
+    fetch_report['next_token'] = next_token
+    return fetch_report
 
 
 if __name__ == "__main__":
@@ -81,7 +79,7 @@ if __name__ == "__main__":
                     'referenced_tweets', 'source', 'text'
                 ]
     req_user_fields = ['id', 'username', 'withheld', 'location', 'verified', 'public_metrics']
-    req_media_fields = ['type', 'url', 'public_metrics'] #'media_key',
+    req_media_fields = ['media_key', 'type', 'url', 'public_metrics']
 
     req_params = create_params(query='#impfzwang',
                                fields=req_field,
@@ -90,12 +88,18 @@ if __name__ == "__main__":
                                start_time=a_while_ago,
                                max_results=50) #TODO remove max results!
 
-    results, res_next_token = recent_search(req_params, tweet_fetch_limit=10) #TODO remove fetch limit!
+    connect_to_mongo()
+    # TODO For Now we empty the DB before
+    Tweets.objects().delete()
 
 
-    if res_next_token:
-        # TODO log meta information for responses (when conducted for which params, next_token passed?)
-        print(f'Next token for response was {res_next_token}. Should include a meta logging here for the responses!')
 
-    #pprint(results)
-    write_to_csv(results, 'data/egge.csv')
+    fetch_report = recent_search(req_params, tweet_fetch_limit=10) #TODO remove fetch limit!
+    print(fetch_report)
+
+    headers_exist = os.path.exists('data/fetch_log.csv')
+    with open('data/fetch_log.csv', 'a', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile)
+        if not headers_exist:
+            spamwriter.writerow(fetch_report.keys())
+        spamwriter.writerow(fetch_report.values())

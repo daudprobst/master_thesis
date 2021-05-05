@@ -1,18 +1,26 @@
-import pandas as pd
 import csv
 import os
 from typing import Sequence, Dict, List, Union
 import collections
+import db.schemes as mongo_db
+from json import dumps
 
 
 class TwitterSearchResponse:
 
-    def __init__(self, response_dict: Dict) -> None:
+    def __init__(self, response_dict: Dict, search_params: Dict) -> None:
         self._data = response_dict
+        self._search_params = search_params
 
     def meta(self) -> Union[Dict, None]:
         try:
             return self._data['meta']
+        except KeyError:
+            return None
+
+    def next_token(self) -> Union[str, None]:
+        try:
+            return self.meta()['next_token']
         except KeyError:
             return None
 
@@ -32,7 +40,6 @@ class TwitterSearchResponse:
         if not self.media():
             return self.tweets()
 
-        output_tweets = self.tweets()
         for media in self.media():
             print(f'Media with id {media["media_key"]}')
             for tweet in self.tweets():
@@ -45,50 +52,43 @@ class TwitterSearchResponse:
         # contain the media obj
         return self.tweets()
 
+    def write_to_db(self) -> None:
 
-def buffer_missing_fields(response_data: Sequence[Dict], fields: Sequence[str]) -> Sequence[Dict]:
-    for response in response_data:
-        for field in fields:
-            if field not in response:
-                response[field] = ''
-    return response_data
+        for entry in self.attach_media_to_tweets():
+            entry['tweet_id'] = entry['id']
+            entry.pop('id')
+            mongo_db.Tweets.from_json(dumps(entry)).save() # TODO force_insert=True
+
+        #TODO writer users to DB!!
 
 
-def match_includes(response_data: Dict, media_fields: List[str], user_fields: List[str]) -> List[Dict]:
-    """Takes a full response object and combines data fields with the matching
-    includes for users and media. Returns a list of the combined data fields"""
+    def write_to_csv(self, filename: str) -> None:
+        """
+        Writes Tweet data (without user includes) to a specified csv file
+        :param filename: full filepath specified for the .csv
+        """
+        # ordered dict work in Python 3.7+
+        response_data_sorted = [dict(sorted(row.items())) for row in self.tweets()]
+        if not os.path.exists(filename):
+            print(f'File with filepath {filename} was not found. Reinitializing with empty file and headers.')
+            with open(filename, 'w', newline='') as csvfile:
+                spamwriter = csv.writer(csvfile)
+                spamwriter.writerow(response_data_sorted[0])
 
-    if 'includes' not in response_data:
-        print("Warning: No includes where found. Returning data only.")
-        return response_data['data']
+        with open(filename, 'a', newline='') as csvfile:
+            for row in response_data_sorted:
+                spamwriter = csv.writer(csvfile)
+                spamwriter.writerow(row.values())
 
-    if 'media' in response_data:
-        pass
-        #probably loop through all media includes they are rare anyways
 
-    #user includes should be solveable with a itertools zip as they always have the same length
-
-    return response_data['data']
-
-def write_to_csv(response_data: Sequence[Dict], filename: str) -> None:
-    """
-    Appends the specified response dictionary to a .csv specified
-    :param response_data: List of *flat* dictionaries, where each dictionary represent one data point (i.e. one Tweet)
-    :param filename: full filepath specified for the .csv
-
-    """
-    # ordered dict work in Python 3.7+
-    response_data_sorted = [dict(sorted(row.items())) for row in response_data]
-    if not os.path.exists(filename):
-        print(f'File with filepath {filename} was not found. Reinitializing with empty file and headers.')
-        with open(filename, 'w', newline='') as csvfile:
-            spamwriter = csv.writer(csvfile)
-            spamwriter.writerow(response_data_sorted[0])
-
-    with open(filename, 'a', newline='') as csvfile:
-        for row in response_data_sorted:
-            spamwriter = csv.writer(csvfile)
-            spamwriter.writerow(row.values())
+    def buffer_missing_fields(self) -> Sequence[Dict]:
+        """Buffers requested fields for which TwitterAPI returned no answer (e.g. often the case for 'withheld'
+          for with an empty string. This happens in place for the self.tweets() of the instance"""
+        for tweet in self.tweets():
+            for field in self._search_params['tweet.fields'].split(','):
+                if field not in tweet:
+                    tweet[field] = ''
+        return self.tweets()
 
 
 def flatten_response(response: Sequence[Dict]) -> Sequence[Dict]:
