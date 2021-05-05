@@ -1,5 +1,5 @@
 from requests_base import make_request, create_params
-from response_handler import buffer_missing_fields, write_to_csv, flatten
+from response_handler import buffer_missing_fields, write_to_csv, flatten, TwitterSearchResponse
 from time import sleep
 from typing import Tuple, Optional, List, Dict
 from datetime import datetime, timedelta, timezone
@@ -10,6 +10,7 @@ from json import dumps
 from pprint import pprint
 
 RECENT_SEARCH_URL = 'https://api.twitter.com/2/tweets/search/recent'
+
 
 
 def recent_search(params: dict, headers: dict = None,
@@ -31,19 +32,21 @@ def recent_search(params: dict, headers: dict = None,
 
         response = make_request(RECENT_SEARCH_URL, params, headers)
 
+        respObj = TwitterSearchResponse(response)
+        print(respObj.attach_media_to_tweets())
         if response['meta']['result_count'] == 0:
             print("Empty response")
             return total_results, None
 
         connect_to_mongo()
         # TODO TMP EMPTY DB
-        Tweets.objects().delete()
-        for entry in response['data']:
-            entry['test_id'] = entry['id']
-            entry.pop('id')
-
-            print(dumps(entry))
-            Tweets.from_json(dumps(entry)).save(force_insert=True)
+        #Tweets.objects().delete()
+        #for entry in response['data']:
+        #    entry['test_id'] = entry['id']
+        #    entry.pop('id')
+        #
+        #    print(dumps(entry))
+        #    Tweets.from_json(dumps(entry)).save(force_insert=True)
 
         # matched_response_data = matched_response_data(response, )
         response['data'] = buffer_missing_fields(response['data'], params['tweet.fields'].split(','))
@@ -80,24 +83,19 @@ if __name__ == "__main__":
     req_user_fields = ['id', 'username', 'withheld', 'location', 'verified', 'public_metrics']
     req_media_fields = ['type', 'url', 'public_metrics'] #'media_key',
 
-    req_params = create_params(query='#pinkygloves',
+    req_params = create_params(query='#impfzwang',
                                fields=req_field,
                                user_fields=req_user_fields,
                                media_fields=req_media_fields,
                                start_time=a_while_ago,
-                               max_results=10) #TODO remove!
+                               max_results=50) #TODO remove max results!
 
-    results, res_next_token = recent_search(req_params, tweet_fetch_limit=10) #TODO remove!
-
-    # TODO WE NEED TO FILL FIELDS THAT ARE NOT RETURNED WITH SOMETHING LIKE "NONE" OR "FALSE" ( a default value), e.g.
-    # for 'withheld' or 'geo'
-
-    # TODO EXTENSIONS FOR USERS AND MATCHING THE DATA FROM 'includes' SO THEY ARE WRITTEN IN THE SAME CSV ROW
+    results, res_next_token = recent_search(req_params, tweet_fetch_limit=10) #TODO remove fetch limit!
 
 
     if res_next_token:
         # TODO log meta information for responses (when conducted for which params, next_token passed?)
         print(f'Next token for response was {res_next_token}. Should include a meta logging here for the responses!')
 
-    pprint(results)
+    #pprint(results)
     write_to_csv(results, 'data/egge.csv')

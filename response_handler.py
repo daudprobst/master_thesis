@@ -4,6 +4,48 @@ import os
 from typing import Sequence, Dict, List, Union
 import collections
 
+
+class TwitterSearchResponse:
+
+    def __init__(self, response_dict: Dict) -> None:
+        self._data = response_dict
+
+    def meta(self) -> Union[Dict, None]:
+        try:
+            return self._data['meta']
+        except KeyError:
+            return None
+
+    def media(self) -> Union[List[Dict], None]:
+        try:
+            return self._data['includes']['media']
+        except KeyError:
+            return None
+
+    def tweets(self) -> Union[List[Dict], None]:
+        try:
+            return self._data['data']
+        except KeyError:
+            return None
+
+    def attach_media_to_tweets(self) -> Union[List[Dict], None]:
+        if not self.media():
+            return self.tweets()
+
+        output_tweets = self.tweets()
+        for media in self.media():
+            print(f'Media with id {media["media_key"]}')
+            for tweet in self.tweets():
+                if 'attachments' in tweet and 'media_keys' in tweet['attachments']:
+                    if media['media_key'] in tweet['attachments']['media_keys']:
+                        print(f'Found match for media key {media["media_key"]} in tweet \n{tweet}')
+                        tweet['media'] = media
+
+        # TODO push this to the tweet in a  smart way and return all tweet objs where the tweets with matching media
+        # contain the media obj
+        return self.tweets()
+
+
 def buffer_missing_fields(response_data: Sequence[Dict], fields: Sequence[str]) -> Sequence[Dict]:
     for response in response_data:
         for field in fields:
