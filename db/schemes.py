@@ -8,7 +8,7 @@ class TweetReference(EmbeddedDocument):
 
 
 class TwitterMedia(EmbeddedDocument):
-    media_key = StringField() #, unique=True primary_key=True
+    media_key = StringField(required=True)
     duration_ms = IntField()
     height = IntField()
     width = IntField()
@@ -26,7 +26,7 @@ class TweetPublicMetrics(EmbeddedDocument):
 
 
 class Tweets(Document):
-    tweet_id = LongField(required=True, unique=True)
+    id = LongField(primary_key=True)
     text = StringField(required=True)
     created_at = DateTimeField(required=True)
     author_id = ReferenceField('Users')
@@ -48,7 +48,7 @@ class Tweets(Document):
 
 
 class Users(Document):
-    id = LongField(primary_key=True, unique=True, required=True)
+    id = LongField(primary_key=True, required=True)
     username = StringField()
     name = StringField()
     verified = BooleanField()

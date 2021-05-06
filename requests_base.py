@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Sequence
 from TwitterSearchResponse import TwitterSearchResponse
 
+
 def auth(bearer_token: str = 'TWT_BEARER_TOKEN') -> str:
     """Returns the bearer token specified in OS: To set your environment variables in your
     terminal run the following line: export 'TWT_BEARER_TOKEN'='<your_bearer_token>'
@@ -39,7 +40,7 @@ def create_params(query: str, max_results: int = 100, fields: Sequence[str] = No
     of the arguments, the Twitter API default will be used.
     :param query: query to be searched
     :param max_results: max_amount of tweets to be returned; Twitter API allows values between 1 and 100.
-    :param fields: all fields to be returned; default Twitter API returns 'text' and 'id'
+    :param fields: all fields to be returned; defaults to ['id', 'text']
     :param media_fields: all media_fields to be returned
     :param user_fields: all user_fields to be returned
     :param start_time: time from which tweets are fetched (inclusive); default Twitter API start_time is 7 days ago;
@@ -52,25 +53,28 @@ def create_params(query: str, max_results: int = 100, fields: Sequence[str] = No
 
     params = {'query': query}
 
+    if not fields:
+        fields = ['id, text']
+
     expansions = []
     if media_fields:
-        if not 'attachments' in fields:
-            fields.append('attachments') # we need the attachments.media id for matching
+        if 'attachments' not in fields:
+            fields.append('attachments')  # we need the attachments.media id for matching
         expansions.append('attachments.media_keys')
-        #params['media.fields'] = media_fields
+        params['media.fields'] = ','.join(media_fields)
 
     if user_fields:
-        if not 'author_id' in fields:
-            fields.append('author_id') # we need author id for matching
+        if 'author_id' not in fields:
+            fields.append('author_id')  # we need author id for matching
         expansions.append('author_id')
-        #params['user.fields'] = user_fields
+        params['user.fields'] = ','.join(user_fields)
 
     if expansions:
         params['expansions'] = ','.join(expansions)
-    if max_results:
-        params['max_results'] = max_results
-    if fields:
-        params['tweet.fields'] = ','.join(fields)  # TWT API expects comma separated list
+
+    params['tweet.fields'] = ','.join(fields)  # TWT API expects comma separated list
+    params['max_results'] = max_results
+
     if start_time:
         params['start_time'] = start_time.isoformat()
     if end_time:
