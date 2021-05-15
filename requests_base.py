@@ -1,6 +1,6 @@
 import requests
 import os
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, timezone
 from typing import Sequence, Tuple
 from TwitterSearchResponse import TwitterSearchResponse
 
@@ -113,6 +113,7 @@ def day_wrapping_datetimes(day: datetime) -> Tuple[datetime, datetime]:
     :return: Tuple containing datetimes for first and last second of day
     """
     return (
-        datetime.combine(day.date(), time.min),
-        datetime.combine((day + timedelta(days=1)).date(), time.min)
+        #use tzinfo=datetime.timezone.utc instead?
+        datetime.combine(day.date(), time.min, tzinfo=timezone.utc),
+        datetime.combine((day + timedelta(days=1)).date(), time.min, tzinfo=timezone.utc)
     )

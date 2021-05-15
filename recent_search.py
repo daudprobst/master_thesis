@@ -1,4 +1,4 @@
-from requests_base import make_request, create_params
+from requests_base import make_request, create_params, day_wrapping_datetimes
 from time import sleep
 from typing import Dict
 from datetime import timedelta, timezone
@@ -47,7 +47,7 @@ def recent_search(params: dict, headers: dict = None,
         fetched_total += response.meta['result_count']
 
         response.write_to_db()
-        response.write_to_csv('data/egge.csv')
+        response.write_to_csv('data/firestorms.csv')
 
         next_token = response.next_token
 
@@ -57,6 +57,7 @@ def recent_search(params: dict, headers: dict = None,
             break
 
         if next_token:
+            print(f"Fetched {fetched_total} tweets so far but more to come!")
             # Wait for 6s so there are not too many requests in a short time (API limit from twitter)
             sleep(6)
 
@@ -81,8 +82,9 @@ def fetch_report_to_csv(fetch_report: dict, filename: str) -> None:
 
 
 if __name__ == "__main__":
-    a_while_ago = datetime.now(timezone.utc) - timedelta(hours=5)
+    a_while_ago = datetime.now(timezone.utc) - timedelta(days=1)
 
+    day_time_stamps = day_wrapping_datetimes(a_while_ago)
     req_field = [
                     'attachments', 'author_id', 'conversation_id', 'created_at', 'entities', 'geo', 'id',
                     'in_reply_to_user_id', 'lang', 'public_metrics', 'possibly_sensitive',
@@ -91,17 +93,16 @@ if __name__ == "__main__":
     req_user_fields = ['id', 'username', 'withheld', 'location', 'verified', 'public_metrics']
     req_media_fields = ['media_key', 'type', 'url', 'public_metrics']
 
-    req_params = create_params(query='#DeleteFacebook',
+    req_params = create_params(query='#Gelsenkirchen OR #Antisemitismus',
                                fields=req_field,
                                user_fields=req_user_fields,
                                media_fields=req_media_fields,
-                               start_time=a_while_ago,
+                               start_time=day_time_stamps[0],
+                               end_time=day_time_stamps[1]
                                )
 
     connect_to_mongo()
-    # TODO For Now we empty the DB before
-    # Tweets.objects().delete()
 
-    res_fetch_report = recent_search(req_params, tweet_fetch_limit=10000)  # TODO remove fetch limit!
+    res_fetch_report = recent_search(req_params, tweet_fetch_limit=25000)  # TODO tweak fetch limit!
     print(res_fetch_report)
     fetch_report_to_csv(res_fetch_report, 'data/fetch_log.csv')
