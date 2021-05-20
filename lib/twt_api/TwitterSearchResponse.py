@@ -1,8 +1,9 @@
+import lib.db.schemes as mongo_db
+
 import csv
 import os
-from typing import Sequence, Dict, List, Union
-import db.schemes as mongo_db
 from json import dumps
+from typing import Sequence, Dict, List, Union
 
 
 class TwitterSearchResponse:
@@ -67,7 +68,7 @@ class TwitterSearchResponse:
         for user in self.users:
             mongo_db.Users.from_json(dumps(user), True).save()  # updates existing users
 
-    def write_to_csv(self, filename: str) -> None:
+    def write_to_csv(self, filename: str = '/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms.csv') -> None:
         """
         Writes Tweet data (without user includes) to a specified csv file
         :param filename: full filepath specified for the .csv

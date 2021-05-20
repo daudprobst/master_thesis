@@ -1,8 +1,9 @@
 from lib.utils.regex_helpers import remove_leading_hashtag
-from db.schemes import Tweets
-from db.connection import connect_to_mongo
-from typing import Sequence
+from lib.db.schemes import Tweets
+from lib.db.connection import connect_to_mongo
+
 from mongoengine import QuerySet
+from typing import Sequence
 
 
 def get_tweets_for_hashtags(hashtags: Sequence[str]) -> QuerySet:

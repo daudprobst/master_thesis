@@ -1,8 +1,9 @@
+from lib.twt_api.TwitterSearchResponse import TwitterSearchResponse
+
 import requests
 import os
 from datetime import datetime, timedelta, time, timezone
 from typing import Sequence, Tuple
-from TwitterSearchResponse import TwitterSearchResponse
 
 
 def auth(bearer_token: str = 'TWT_BEARER_TOKEN') -> str:

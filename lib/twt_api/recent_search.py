@@ -1,12 +1,10 @@
-from requests_base import make_request, create_params, day_wrapping_datetimes
+from lib.twt_api.requests_base import make_request
+from lib.db.schemes import *
+
 from time import sleep
-from typing import Dict
-from datetime import timedelta, timezone
-from db.schemes import *
-from db.connection import connect_to_mongo
 import os
 import csv
-
+from typing import Dict
 
 RECENT_SEARCH_URL = 'https://api.twitter.com/2/tweets/search/recent'
 
@@ -56,7 +54,7 @@ def recent_search(params: dict, headers: dict = None,
         fetched_total += response.meta['result_count']
 
         response.write_to_db()
-        response.write_to_csv('data/firestorms.csv')
+        response.write_to_csv()
 
         next_token = response.next_token
 
@@ -89,30 +87,3 @@ def fetch_report_to_csv(fetch_report: dict, filename: str) -> None:
         if not headers_exist:
             spamwriter.writerow(fetch_report.keys())
         spamwriter.writerow(fetch_report.values())
-
-
-if __name__ == "__main__":
-    a_while_ago = datetime.now(timezone.utc) - timedelta(days=1)
-
-    day_time_stamps = day_wrapping_datetimes(a_while_ago)
-    req_field = [
-                    'attachments', 'author_id', 'conversation_id', 'created_at', 'entities', 'geo', 'id',
-                    'in_reply_to_user_id', 'lang', 'public_metrics', 'possibly_sensitive',
-                    'referenced_tweets', 'source', 'text'
-                ]
-    req_user_fields = ['id', 'username', 'withheld', 'location', 'verified', 'public_metrics']
-    req_media_fields = ['media_key', 'type', 'url', 'public_metrics']
-
-    req_params = create_params(query='#studierenwieBaerbock',
-                               fields=req_field,
-                               user_fields=req_user_fields,
-                               media_fields=req_media_fields,
-                               start_time=day_time_stamps[0],
-                               end_time=day_time_stamps[1]
-                               )
-
-    connect_to_mongo()
-
-    res_fetch_report = recent_search(req_params, tweet_fetch_limit=25000)  # TODO tweak fetch limit!
-    print(res_fetch_report)
-    fetch_report_to_csv(res_fetch_report, 'data/fetch_log.csv')
