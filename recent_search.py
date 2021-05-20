@@ -27,7 +27,8 @@ def recent_search(params: dict, headers: dict = None,
         "finished_fetching": '',
         "fetched_total": 0,
         "next_token": '',
-        "params": params
+        "params": params,
+        "interrupt": ''
     }
     fetched_total = 0
     next_token = None
@@ -37,9 +38,17 @@ def recent_search(params: dict, headers: dict = None,
         if next_token:  # always the case except for the first request
             params['next_token'] = next_token
 
-        response = make_request(RECENT_SEARCH_URL, params, headers)
+        try:
+            response = make_request(RECENT_SEARCH_URL, params, headers)
+        except Exception as e:
+            print(f"TwitterAPI Access failed: {e}")
+            fetch_report['finished_fetching'] = datetime.now().isoformat()
+            fetch_report['fetched_total'] = fetched_total
+            fetch_report['next_token'] = next_token
+            fetch_report['interrupt'] = e
+            return fetch_report
 
-        print(f'Fetched some new tweets! {response.meta}')
+        print(f'Fetched new batch of tweets! {response.meta}')
         if response.meta['result_count'] == 0 and fetched_total == 0:
             print("No results were found for this query!")
             break
@@ -57,10 +66,11 @@ def recent_search(params: dict, headers: dict = None,
             break
 
         if next_token:
-            print(f"Fetched {fetched_total} tweets so far but more to come!")
+            print(f"Fetched {fetched_total} tweets so. Continuing fetching after delay...")
             # Wait for 6s so there are not too many requests in a short time (API limit from twitter)
             sleep(6)
 
+    print("Finished fetching")
     fetch_report['finished_fetching'] = datetime.now().isoformat()
     fetch_report['fetched_total'] = fetched_total
     fetch_report['next_token'] = next_token
@@ -98,7 +108,8 @@ if __name__ == "__main__":
                                user_fields=req_user_fields,
                                media_fields=req_media_fields,
                                start_time=day_time_stamps[0],
-                               end_time=day_time_stamps[1]
+                               end_time=day_time_stamps[1],
+                               next_token='b26v89c19zqg8o3foswsnvq98w0ub0nrvrkctaton8igt'
                                )
 
     connect_to_mongo()
