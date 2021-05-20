@@ -28,7 +28,7 @@ def recent_search(params: dict, headers: dict = None,
         "fetched_total": 0,
         "next_token": '',
         "params": params,
-        "interrupt": ''
+        "interrupts": ''
     }
     fetched_total = 0
     next_token = None
@@ -45,7 +45,7 @@ def recent_search(params: dict, headers: dict = None,
             fetch_report['finished_fetching'] = datetime.now().isoformat()
             fetch_report['fetched_total'] = fetched_total
             fetch_report['next_token'] = next_token
-            fetch_report['interrupt'] = e
+            fetch_report['interrupts'] = e
             return fetch_report
 
         print(f'Fetched new batch of tweets! {response.meta}')
@@ -103,13 +103,12 @@ if __name__ == "__main__":
     req_user_fields = ['id', 'username', 'withheld', 'location', 'verified', 'public_metrics']
     req_media_fields = ['media_key', 'type', 'url', 'public_metrics']
 
-    req_params = create_params(query='#Gelsenkirchen OR #Antisemitismus',
+    req_params = create_params(query='#studierenwieBaerbock',
                                fields=req_field,
                                user_fields=req_user_fields,
                                media_fields=req_media_fields,
                                start_time=day_time_stamps[0],
-                               end_time=day_time_stamps[1],
-                               next_token='b26v89c19zqg8o3foswsnvq98w0ub0nrvrkctaton8igt'
+                               end_time=day_time_stamps[1]
                                )
 
     connect_to_mongo()
