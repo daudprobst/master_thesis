@@ -6,7 +6,7 @@ from mongoengine import QuerySet
 from typing import Sequence
 
 
-def get_tweets_for_hashtags(hashtags: Sequence[str]) -> QuerySet:
+def get_tweets_for_hashtags(*hashtags: Sequence[str]) -> QuerySet:
     """Returns all tweets that contained one of the specified hashtags
 
     :param hashtags: list of hashtags to query for
