@@ -5,7 +5,7 @@ from lib.utils.datetime_helpers import unix_ms_to_date, round_to_hour, round_to_
 import pandas as pd
 from src.graphs.bar_plot import percentage_bar_plot
 from src.analysis.analysis_helpers import contains_url, tweet_sentiment_category, tweet_type, user_type
-
+from lib.utils.constants import clrs
 
 if __name__ == "__main__":
     connect_to_mongo()
@@ -54,6 +54,9 @@ if __name__ == "__main__":
 
     GROUPING_VAR = 'contains_url'
 
-    percentage_bar_plot(firestorm_df, None, 'hour_slot', 'contains_url').show()
-    percentage_bar_plot(firestorm_df, None, 'hour_slot', 'tweet_type').show()
-    percentage_bar_plot(firestorm_df, None, 'hour_slot', 'user_group').show()
+    percentage_bar_plot(firestorm_df, None, 'hour_slot', 'contains_url', measure_type='percentage',
+                        title="Usage of URLs", color_discrete_sequence=[clrs['blue'], clrs['olive']]).show()
+    percentage_bar_plot(firestorm_df, None, 'hour_slot', 'tweet_type', title="Tweet Type", measure_type='percentage',
+                        color_discrete_sequence=[clrs['maroon'], clrs['fuchsia'], clrs['orange'], clrs['yellow']]).show()
+    percentage_bar_plot(firestorm_df, None, 'hour_slot', 'user_group', measure_type='percentage',
+                        color_discrete_sequence=[clrs['purple'], clrs['teal'], clrs['aqua']]).show()

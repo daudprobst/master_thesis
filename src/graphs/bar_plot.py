@@ -1,11 +1,11 @@
 import pandas as pd
 import plotly.express as px
 
-def percentage_bar_plot(data: pd.DataFrame, plot, grouping_var: str,
-                            factor_var: str, min_entry_count: int = 500) -> any:
 
-    group_counts_by_factor = data.groupby([grouping_var, factor_var]).size().reset_index(name='level_count')
-    print(group_counts_by_factor)
+def percentage_bar_plot(data: pd.DataFrame, plot, grouping_var: str, factor_var: str,
+                        measure_type: str = 'count', min_entry_count: int = 500, **kwargs)-> any:
+
+    group_counts_by_factor = data.groupby([grouping_var, factor_var]).size().reset_index(name='count')
 
     # Overall tweets in a specific time segment/hour slot
     group_sizes = data.groupby(grouping_var).size()
@@ -16,11 +16,10 @@ def percentage_bar_plot(data: pd.DataFrame, plot, grouping_var: str,
         if (count < min_entry_count):
             low_count_groups.append(hour)
 
-    print(f'Tweets for this time slot should be removed {low_count_groups}')
-    firestorm_counts = group_counts_by_factor[~group_counts_by_factor[grouping_var].isin(low_count_groups)]
+    group_counts_by_factor = group_counts_by_factor[~group_counts_by_factor[grouping_var].isin(low_count_groups)]
 
-    firestorm_counts['level_percentage'] = firestorm_counts.apply(
-        lambda row: row['level_count'] / group_sizes[row[grouping_var]], axis=1)
+    group_counts_by_factor.loc[:, 'percentage'] = group_counts_by_factor.apply(
+        lambda row: row['count'] / group_sizes[row[grouping_var]], axis=1)
 
-    return px.bar(firestorm_counts, x=grouping_var, y="level_percentage", color=factor_var,
-                 title="Untitled")
+    return px.bar(group_counts_by_factor, x=grouping_var, y=measure_type, hover_data=['count', 'percentage'],
+                  color=factor_var, **kwargs)
