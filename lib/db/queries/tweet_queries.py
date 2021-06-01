@@ -17,9 +17,10 @@ def get_tweets_for_hashtags(*hashtags: Sequence[str]) -> QuerySet:
     # Remove leading # symbol if they were included in the input
     hashtags = remove_leading_hashtag(hashtags)
 
-    return Tweets.objects(entities__hashtags__tag__in=hashtags)
+    # TODO for now this onyl retrieves the tweets for the first hashtag!
+    return Tweets.objects(search_params__query__icontains=hashtags[0])
 
 
 if __name__ == "__main__":
     connect_to_mongo()
-    print(type(get_tweets_for_hashtags(["studierenwieBaerbock"])))
+    print(len(get_tweets_for_hashtags("pinkygloves")))

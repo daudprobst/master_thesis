@@ -14,6 +14,10 @@ class TwitterSearchResponse:
         self._search_params = search_params
 
     @property
+    def search_params(self) -> Dict:
+        return self._search_params
+
+    @property
     def meta(self) -> Union[Dict, None]:
         try:
             return self._data['meta']
@@ -63,6 +67,7 @@ class TwitterSearchResponse:
 
     def write_to_db(self) -> None:
         for entry in self.attach_media_to_tweets():
+            entry['search_params'] = self.search_params
             mongo_db.Tweets.from_json(dumps(entry), True).save()  # TODO force_insert=True?
 
         for user in self.users:

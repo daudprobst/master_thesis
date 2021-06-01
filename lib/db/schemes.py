@@ -44,6 +44,7 @@ class Tweets(Document):
     geo = DynamicField()
     referenced_tweets = ListField(EmbeddedDocumentField('TweetReference'))
     media = EmbeddedDocumentField('TwitterMedia')  # we store media directly in the tweet
+    search_params = DictField()
     fetch_date = DateTimeField(default=datetime.utcnow)
 
 

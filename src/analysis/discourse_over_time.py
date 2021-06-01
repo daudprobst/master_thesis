@@ -3,7 +3,8 @@ from lib.db.connection import connect_to_mongo
 from json import loads
 from lib.utils.datetime_helpers import unix_ms_to_date, round_to_hour, round_to_hour_slots
 import pandas as pd
-from src.graphs.bar_plot import percentage_bar_plot
+from src.graphs.bar_plot import percentage_bar_plot_over_time
+from src.graphs.pie_plot import pie_plot
 from src.analysis.analysis_helpers import contains_url, tweet_sentiment_category, tweet_type, user_type
 from lib.utils.constants import clrs
 
@@ -52,11 +53,15 @@ if __name__ == "__main__":
 
     # Start Grouping for Analysis
 
-    GROUPING_VAR = 'contains_url'
+    pie_plot(firestorm_df, 'user_group',
+             color_discrete_sequence=[clrs['purple'], clrs['teal'], clrs['aqua']]).show()
 
-    percentage_bar_plot(firestorm_df, None, 'hour_slot', 'contains_url', measure_type='percentage',
+
+    '''
+    percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'contains_url', measure_type='percentage',
                         title="Usage of URLs", color_discrete_sequence=[clrs['blue'], clrs['olive']]).show()
-    percentage_bar_plot(firestorm_df, None, 'hour_slot', 'tweet_type', title="Tweet Type", measure_type='percentage',
+    percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'tweet_type', title="Tweet Type", measure_type='percentage',
                         color_discrete_sequence=[clrs['maroon'], clrs['fuchsia'], clrs['orange'], clrs['yellow']]).show()
-    percentage_bar_plot(firestorm_df, None, 'hour_slot', 'user_group', measure_type='percentage',
+    percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'user_group', measure_type='percentage',
                         color_discrete_sequence=[clrs['purple'], clrs['teal'], clrs['aqua']]).show()
+    '''
