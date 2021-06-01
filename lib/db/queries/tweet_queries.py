@@ -11,16 +11,27 @@ def get_tweets_for_hashtags(*hashtags: Sequence[str]) -> QuerySet:
 
     :param hashtags: list of hashtags to query for
     :return: mongoengine QuerySet that contains all tweets that contain at least one of the hashtags;
-    schema of tweets as defined in db.schemes.Tweets
     """
 
     # Remove leading # symbol if they were included in the input
     hashtags = remove_leading_hashtag(hashtags)
 
-    # TODO for now this onyl retrieves the tweets for the first hashtag!
-    return Tweets.objects(search_params__query__icontains=hashtags[0])
+    return Tweets.objects(entities__hashtags__tag__in=hashtags)
+
+def get_tweets_for_search_query(hashtag: str) -> QuerySet:
+    """Returns all tweets that were returned for a query that contains the specified hashtag
+
+    :param hashtags: a hashtag which was queried
+    :return: mongoengine QuerySet that contains all tweets that were retrieved when querying for this hashtag
+    """
+
+    # Remove leading # symbol if they were included in the input
+    hashtags = remove_leading_hashtag(hashtag)
+
+    return Tweets.objects(search_params__query__icontains=hashtag)
+
 
 
 if __name__ == "__main__":
     connect_to_mongo()
-    print(len(get_tweets_for_hashtags("pinkygloves")))
+    print(len(get_tweets_for_search_query('#pinkyglove')))

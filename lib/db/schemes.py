@@ -45,6 +45,9 @@ class Tweets(Document):
     referenced_tweets = ListField(EmbeddedDocumentField('TweetReference'))
     media = EmbeddedDocumentField('TwitterMedia')  # we store media directly in the tweet
     search_params = DictField()
+    tweet_type = StringField()
+    contains_url = BooleanField()
+    user_type = StringField()
     fetch_date = DateTimeField(default=datetime.utcnow)
 
 

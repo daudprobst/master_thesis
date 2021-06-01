@@ -22,11 +22,7 @@ if __name__ == "__main__":
         entry['created_at'] =  unix_ms_to_date(entry['created_at']["$date"])
         entry['hour'] =  round_to_hour(entry['created_at'])
         entry['hour_slot'] = round_to_hour_slots(entry['created_at'], 6)
-        entry['tweet_type'] = tweet_type(entry)
-        entry['contains_url'] = contains_url(entry)
-        #entry['sentiment_category'] = tweet_sentiment_category(entry['text'])
-        #if i%100 == 0:
-        #    print(f'Calculated attributes for {i} tweets')
+
 
     firestorm_df = pd.DataFrame.from_records(firestorm_tweets_selection)
 
