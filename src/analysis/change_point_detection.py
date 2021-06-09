@@ -1,13 +1,11 @@
 import ruptures as rpt
 from lib.db.connection import connect_to_mongo
 from lib.db.queries.tweet_queries import get_tweets_for_search_query_sorted_by_time
-from lib.preprocessing.preprocess_tweets_df import select_time_range, preprocess_tweets_df
+from lib.preprocessing.preprocess_tweets_df import select_time_range, preprocess_tweets_df, rates_per_hour
 from datetime import datetime
 import pandas as pd
 from typing import List
 from lib.graphs.pie_plot import pie_plot_multiplot
-
-import plotly.express as px
 
 
 def get_breakpoints(tweets: pd.DataFrame) -> List[datetime]:
@@ -32,31 +30,11 @@ def get_breakpoints(tweets: pd.DataFrame) -> List[datetime]:
         # ("en_pct", 'lang', 'en'),
     ]
 
-    # setting up the output_df
-    df_index = tweets['hour'].unique()
-    cols = [x[0] for x in to_calculate]
-    output_df = pd.DataFrame(columns=cols, index=df_index)
-
-    # group all tweets that appeared in the same hour and calculate stats for them
-    tweets_by_hour = tweets.groupby('hour')
-    for name, group in tweets_by_hour:
-        total_length = len(group)
-        # TODO we are ignoring total tweet count for now!
-        # output_df.at[name, 'total_tweets'] = total_length
-        # Normalizing: This method only works for data that has only positive values
-        # output_df['total_tweets'] = output_df['total_tweets']/output_df['total_tweets'].max()
-        for col, var_name, value in to_calculate:
-            if col == 'total_tweets':
-                pass
-            else:
-                output_df.at[name, col] = group[var_name].value_counts()[value] / total_length
-
-    # sort the output by time (hour)
-    output_df.sort_index(inplace=True)
+    metrics_per_hour = rates_per_hour(tweets, to_calculate)
 
     # ready to calculate the breakpoints!
     # transform data in structure that works with the ruptures package
-    signal = output_df.to_numpy()
+    signal = metrics_per_hour.to_numpy()
     print(f'Calculating breakpoints for signal of shape {signal.shape}')
 
     # Specify the model params
@@ -68,7 +46,7 @@ def get_breakpoints(tweets: pd.DataFrame) -> List[datetime]:
     # TODO CHECK WHETHER THE BREAKPOINT IS TO BE INCLUDED OR EXCLUDED!!!
     bkp_in_data = [x-1 for x in result]
     print(bkp_in_data)
-    return [x.to_pydatetime() for x in output_df.index[bkp_in_data]]
+    return [x.to_pydatetime() for x in metrics_per_hour.index[bkp_in_data]]
 
 
 if __name__ == "__main__":
