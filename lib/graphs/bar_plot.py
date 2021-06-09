@@ -3,7 +3,7 @@ import plotly.express as px
 
 
 def percentage_bar_plot_over_time(data: pd.DataFrame, plot, grouping_var: str, factor_var: str,
-                        measure_type: str = 'count', min_entry_count: int = 500, **kwargs)-> any:
+                        measure_type: str = 'count', min_entry_count: int = 50, **kwargs)-> any:
 
     group_counts_by_factor = data.groupby([grouping_var, factor_var]).size().reset_index(name='count')
 

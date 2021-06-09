@@ -1,63 +1,84 @@
-from lib.db.queries.tweet_queries import get_tweets_for_hashtags
+from lib.db.queries.tweet_queries import get_tweets_for_search_query
 from lib.db.connection import connect_to_mongo
 from json import loads
-from lib.utils.datetime_helpers import unix_ms_to_date, round_to_hour, round_to_hour_slots
+from lib.utils.datetime_helpers import unix_ms_to_date, round_to_hour
 import pandas as pd
-from src.graphs.bar_plot import percentage_bar_plot_over_time
-from src.graphs.pie_plot import pie_plot
-from src.analysis.analysis_helpers import contains_url, tweet_sentiment_category, tweet_type, user_type
-from lib.utils.constants import clrs
+import plotly.express as px
+
+
+def entries_per_hour(tweets: pd.DataFrame):
+    for i,tweet in tweets.iterrows():
+        tweet['created_at'] = unix_ms_to_date(tweet['created_at']["$date"])
+        tweets._set_value(i, "hour", round_to_hour(tweet['created_at']))
+
+    print(tweets.iloc[0])
+    return tweets.groupby(['hour']).size().reset_index(name='count')
+
+def rates_over_time(tweets: pd.DataFrame):
+    #################
+    from scipy import signal
+
+    output_df['hour'] = output_df.index
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=output_df['hour'],
+        y=signal.savgol_filter(output_df['retweet_pct'],
+                               53,  # window size used for filtering
+                               3),  # order of fitted polynomial
+        name='retweet pct'
+    ))
+    fig.add_trace(go.Scatter(
+        x=output_df['hour'],
+        y=signal.savgol_filter(output_df['laggards_pct'],
+                               53,  # window size used for filtering
+                               3),  # order of fitted polynomial
+        name='Laggards pct'
+    ))
+    fig.add_trace(go.Scatter(
+        x=output_df['hour'],
+        y=signal.savgol_filter(output_df['de_pct'],
+                               53,  # window size used for filtering
+                               3),  # order of fitted polynomial
+        name='de pct'
+    ))
+    fig.show()
+
+    '''
+    px.line(output_df, x="hour", y="retweet_pct", title="retweet pct").show()
+    px.line(output_df, x="hour", y="retweet_pct", title="retweet pct").show()
+    px.line(output_df, x="hour", y="laggards_pct", title="laggards_pct").show()
+    px.line(output_df, x="hour", y="de_pct", title="de_pct").show()
+    '''
+    output_df = output_df.drop(['hour'], axis=1)
+    #################
+
 
 if __name__ == "__main__":
     connect_to_mongo()
 
     firestorm_tweets_selection = loads(
-        get_tweets_for_hashtags('#Antisemitismus', 'Gelsenkirchen').only(
-            'author_id', 'created_at', 'text', 'referenced_tweets', "entities__urls"
+        get_tweets_for_search_query('pinkygloves').only(
+            'user_type', 'created_at', 'text', 'tweet_type', "contains_url", "lang"
         ).to_json()
     )
 
-    #preprocessing
-    for i, entry in enumerate(firestorm_tweets_selection):
-        entry['created_at'] =  unix_ms_to_date(entry['created_at']["$date"])
-        entry['hour'] =  round_to_hour(entry['created_at'])
-        entry['hour_slot'] = round_to_hour_slots(entry['created_at'], 6)
-
-
     firestorm_df = pd.DataFrame.from_records(firestorm_tweets_selection)
 
-    #== add user group to data frame
-    firestorms_user_activity_counts = firestorm_df.groupby(['author_id']).size().reset_index(name='count')
+    px.line(entries_per_hour(firestorm_df), x="hour", y="count").show()
 
-    firestorms_user_activity_counts.sort_values(by=["count"], ascending=False, inplace=True)
-
-    hyper_active_users = list(
-        firestorms_user_activity_counts.iloc[:len(firestorms_user_activity_counts) // 100]['author_id']
-    )
-    active_users = list(
-        firestorms_user_activity_counts.iloc[
-            len(firestorms_user_activity_counts) // 100: len(firestorms_user_activity_counts) // 10]['author_id'])
-    lurking_users = list(firestorms_user_activity_counts.iloc[len(firestorms_user_activity_counts) // 10:]['author_id'])
-
-    print(f'{len(hyper_active_users)} hyper_active_users, {len(active_users)}'
-          f' active_users and {len(lurking_users)} lurking_users')
-
-    firestorm_df['user_group'] = firestorm_df.apply(
-        lambda row: user_type(row, hyper_active_users, active_users, lurking_users), axis=1)
-
-    # ====
-
-    # Start Grouping for Analysis
-
-    pie_plot(firestorm_df, 'user_group',
-             color_discrete_sequence=[clrs['purple'], clrs['teal'], clrs['aqua']]).show()
+    #pie_plot(firestorm_df, 'user_type',
+    #         color_discrete_sequence=[clrs['purple'], clrs['teal'], clrs['aqua']]).show()
 
 
+    # px.line(firestorm_df, x="hour", y="lifeExp").show()
     '''
     percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'contains_url', measure_type='percentage',
                         title="Usage of URLs", color_discrete_sequence=[clrs['blue'], clrs['olive']]).show()
     percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'tweet_type', title="Tweet Type", measure_type='percentage',
                         color_discrete_sequence=[clrs['maroon'], clrs['fuchsia'], clrs['orange'], clrs['yellow']]).show()
-    percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'user_group', measure_type='percentage',
+    percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'user_type', measure_type='percentage',
                         color_discrete_sequence=[clrs['purple'], clrs['teal'], clrs['aqua']]).show()
+    percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'lang', title="Language", measure_type='percentage',
+                    ).show()
     '''
+
