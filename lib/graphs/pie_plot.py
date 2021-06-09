@@ -3,7 +3,6 @@ import plotly.express as px
 from typing import Sequence
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-import plotly
 
 
 def pie_plot(data: pd.DataFrame, grouping_var: str, **kwargs) -> any:

@@ -1,57 +1,48 @@
 from lib.db.queries.tweet_queries import get_tweets_for_search_query
 from lib.db.connection import connect_to_mongo
 from json import loads
-from lib.utils.datetime_helpers import unix_ms_to_date, round_to_hour
 import pandas as pd
-import plotly.express as px
+from datetime import datetime
+import pymannkendall
+from lib.graphs.line_plots import smoothed_line_plots
+from lib.preprocessing.preprocess_tweets_df import rates_per_hour, preprocess_tweets_df, select_time_range
+from typing import Tuple
+import pymannkendall
 
 
-def entries_per_hour(tweets: pd.DataFrame):
-    for i,tweet in tweets.iterrows():
-        tweet['created_at'] = unix_ms_to_date(tweet['created_at']["$date"])
-        tweets._set_value(i, "hour", round_to_hour(tweet['created_at']))
+def plot_rates_over_time(tweets: pd.DataFrame) -> None:
+    tweet_metrics_by_hour = rates_per_hour(tweets)
+    tweet_metrics_by_hour['hour'] = tweet_metrics_by_hour.index
 
-    print(tweets.iloc[0])
-    return tweets.groupby(['hour']).size().reset_index(name='count')
+    smoothed_line_plots(tweet_metrics_by_hour, x='hour', y=['total_tweets', 'retweet_pct', 'laggards_pct', 'de_pct']).show()
 
-def rates_over_time(tweets: pd.DataFrame):
-    #################
-    from scipy import signal
+def test_for_trend(tweet_metrics_by_hour: pd.DataFrame, attribute: str) -> Tuple:
+    """ Tests for a trend in the time series
 
-    output_df['hour'] = output_df.index
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=output_df['hour'],
-        y=signal.savgol_filter(output_df['retweet_pct'],
-                               53,  # window size used for filtering
-                               3),  # order of fitted polynomial
-        name='retweet pct'
-    ))
-    fig.add_trace(go.Scatter(
-        x=output_df['hour'],
-        y=signal.savgol_filter(output_df['laggards_pct'],
-                               53,  # window size used for filtering
-                               3),  # order of fitted polynomial
-        name='Laggards pct'
-    ))
-    fig.add_trace(go.Scatter(
-        x=output_df['hour'],
-        y=signal.savgol_filter(output_df['de_pct'],
-                               53,  # window size used for filtering
-                               3),  # order of fitted polynomial
-        name='de pct'
-    ))
-    fig.show()
+    :param tweet_metrics_by_hour:
+    :param attribute: attribute for which the trend should be tested (e.g. 'retweet_pct')
+    :return:  And all Mann-Kendall tests return a named tuple which contained:
+
+            trend: tells the trend (increasing, decreasing or no trend)
+            h: True (if trend is present) or False (if the trend is absence)
+            p: p-value of the significance test
+            z: normalized test statistics
+            Tau: Kendall Tau
+            s: Mann-Kendal's score
+            var_s: Variance S
+            slope: Theil-Sen estimator/slope
+            intercept: intercept of Kendall-Theil Robust Line, for seasonal test, full period cycle consider as unit time step
+
+        sen's slope function required data vector. seasonal sen's slope also has optional input period, which by the default value is 12. Both sen's slope function return only slope value.
+    """
 
     '''
-    px.line(output_df, x="hour", y="retweet_pct", title="retweet pct").show()
-    px.line(output_df, x="hour", y="retweet_pct", title="retweet pct").show()
-    px.line(output_df, x="hour", y="laggards_pct", title="laggards_pct").show()
-    px.line(output_df, x="hour", y="de_pct", title="de_pct").show()
-    '''
-    output_df = output_df.drop(['hour'], axis=1)
-    #################
+            Seasonal MK Test (seasonal_test): For seasonal time series data, Hirsch, R.M., Slack, J.R. and Smith, R.A. (1982)
+            proposed this test to calculate the seasonal trend.
+            (https://pypi.org/project/pymannkendall/)
 
+           '''
+    return pymannkendall.seasonal_test(tweet_metrics_by_hour[attribute], period=24)
 
 if __name__ == "__main__":
     connect_to_mongo()
@@ -62,23 +53,50 @@ if __name__ == "__main__":
         ).to_json()
     )
 
-    firestorm_df = pd.DataFrame.from_records(firestorm_tweets_selection)
+    firestorm_df = preprocess_tweets_df(pd.DataFrame.from_records(firestorm_tweets_selection))
+    firestorm_df = select_time_range(firestorm_df, datetime.strptime("2021-04-13 12:00:00", '%Y-%m-%d %H:%M:%S'),
+                                     datetime.strptime("2021-04-17 12:00:00", '%Y-%m-%d %H:%M:%S'))
 
-    px.line(entries_per_hour(firestorm_df), x="hour", y="count").show()
+    # plot_rates_over_time(firestorm_df)
 
-    #pie_plot(firestorm_df, 'user_type',
-    #         color_discrete_sequence=[clrs['purple'], clrs['teal'], clrs['aqua']]).show()
+    tweet_metrics_by_hour = rates_per_hour(firestorm_df)
+    tweet_metrics_by_hour['hour'] = tweet_metrics_by_hour.index
+
+    for variable in ['retweet_pct', 'laggards_pct']:
+        test_statistics = test_for_trend(tweet_metrics_by_hour, variable)
+        print(f'Trend test for {variable}: {test_statistics}')
+        if test_statistics.p > 0.05:
+            print('No significant trend!')
+        else:
+            print('Trend significant!')
+
+        # -> significant trend for laggards_pct, no significance for retweet_pct!
+
+    
 
 
-    # px.line(firestorm_df, x="hour", y="lifeExp").show()
+
+
+    from statsmodels.tsa.seasonal import seasonal_decompose
+    import matplotlib.pyplot as plt
+
+
+
+    import plotly.express as px
+
+
+    fig = px.scatter(tweet_metrics_by_hour, x="hour", y="retweet_pct", trendline="ols")
+    fig.show()
+
     '''
-    percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'contains_url', measure_type='percentage',
-                        title="Usage of URLs", color_discrete_sequence=[clrs['blue'], clrs['olive']]).show()
-    percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'tweet_type', title="Tweet Type", measure_type='percentage',
-                        color_discrete_sequence=[clrs['maroon'], clrs['fuchsia'], clrs['orange'], clrs['yellow']]).show()
-    percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'user_type', measure_type='percentage',
-                        color_discrete_sequence=[clrs['purple'], clrs['teal'], clrs['aqua']]).show()
-    percentage_bar_plot_over_time(firestorm_df, None, 'hour_slot', 'lang', title="Language", measure_type='percentage',
-                    ).show()
-    '''
+    decomposed_ts = seasonal_decompose(tweet_metrics_by_hour['retweet_pct'], model='additive', extrapolate_trend='freq')
 
+    plt.rcParams.update({'figure.figsize': (10, 10)})
+    decomposed_ts.plot().suptitle('Additive Decompose', fontsize=22)
+    plt.show()
+
+    df_reconstructed = pd.concat([decomposed_ts.seasonal, decomposed_ts.trend, decomposed_ts.resid, decomposed_ts.observed], axis=1)
+    df_reconstructed.columns = ['seas', 'trend', 'resid', 'actual_values']
+    print(df_reconstructed.iloc[15])
+    print(df_reconstructed.head())
+    '''

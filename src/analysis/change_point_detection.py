@@ -19,7 +19,7 @@ def get_breakpoints(tweets: pd.DataFrame) -> List[datetime]:
     to_calculate = [
         # ("total_tweets", None, None),
         ("retweet_pct", 'tweet_type', 'retweet without comment'),
-        # TODO using only n-1 attributes to avoid multicollinearity is correct
+
         # ("quoted_pct", 'tweet_type', 'retweet with comment'),
         ("original_tweet_pct", 'tweet_type', 'original tweet'),
         ("reply_pct", 'tweet_type', 'reply'),

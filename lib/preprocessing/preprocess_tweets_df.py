@@ -43,7 +43,7 @@ def select_time_range(tweets: pd.DataFrame, start_point: datetime, end_point: da
     return tweets[(tweets[time_variable] >= start_point) & (tweets[time_variable] < end_point)]
 
 
-def rates_per_hour(tweets: pd.DataFrame, to_calculate: Sequence[Tuple[str, str, str]],
+def rates_per_hour(tweets: pd.DataFrame, to_calculate: Sequence[Tuple[str, str, str]] = None,
                    grouping_var: str = 'hour') -> pd.DataFrame:
     """ Groups the tweets per hour and calculates percentages for certain values in categorical variables that
     were specified in to_calculate (e.g. ("retweet_pct", 'tweet_type', 'retweet without comment') will include the
@@ -58,6 +58,24 @@ def rates_per_hour(tweets: pd.DataFrame, to_calculate: Sequence[Tuple[str, str, 
     :return: data frame with metrics(rates) for each hour for some variables
     """
 
+    if not to_calculate:
+        # TODO is using only n-1 attributes to avoid multicollinearity correct?
+        to_calculate = [
+            ("total_tweets", None, None),
+            # ==tweet type
+            ("retweet_pct", 'tweet_type', 'retweet without comment'),
+            ("original_tweet_pct", 'tweet_type', 'original tweet'),
+            ("reply_pct", 'tweet_type', 'reply'),
+            # ("quoted_pct", 'tweet_type', 'retweet with comment'),
+            # ==user type
+            ("laggards_pct", 'user_type', 'laggard'),
+            ("active_pct", 'user_type', 'active'),
+            # ("hyper_active_pct", 'user_type', 'hyper-active'),
+            # ==lang
+            ("de_pct", 'lang', 'de'),
+            # ("en_pct", 'lang', 'en'),
+        ]
+
     # setting up the output_df
     df_index = tweets[grouping_var].unique()
     cols = [x[0] for x in to_calculate]
@@ -67,16 +85,24 @@ def rates_per_hour(tweets: pd.DataFrame, to_calculate: Sequence[Tuple[str, str, 
     tweets_by_hour = tweets.groupby(grouping_var)
     for name, group in tweets_by_hour:
         total_length = len(group)
-        # TODO we are ignoring total tweet count for now!
-        # output_df.at[name, 'total_tweets'] = total_length
-        # Normalizing: This method only works for data that has only positive values
-        # output_df['total_tweets'] = output_df['total_tweets']/output_df['total_tweets'].max()
         for col, var_name, value in to_calculate:
             if col == 'total_tweets':
-                pass
+                output_df.at[name, 'total_tweets'] = total_length
             else:
                 output_df.at[name, col] = group[var_name].value_counts()[value] / total_length
 
+    if 'total_tweets' in output_df.columns:
+        # Normalizing total length (only works since data has only positive values)
+        output_df['total_tweets'] = output_df['total_tweets'] / output_df['total_tweets'].max()
 
     # sort the output by time (hour)
     return output_df.sort_index()
+
+
+def entries_per_hour(tweets: pd.DataFrame):
+    for i,tweet in tweets.iterrows():
+        tweet['created_at'] = unix_ms_to_date(tweet['created_at']["$date"])
+        tweets._set_value(i, "hour", round_to_hour(tweet['created_at']))
+
+    print(tweets.iloc[0])
+    return tweets.groupby(['hour']).size().reset_index(name='count')
