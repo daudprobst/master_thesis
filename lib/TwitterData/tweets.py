@@ -5,7 +5,6 @@ from lib.db.queries.tweet_queries import get_tweets_for_search_query
 from lib.utils.datetime_helpers import unix_ms_to_date, round_to_hour
 from typing import Sequence, Tuple
 
-
 class Tweets:
 
     def __init__(self, tweets: pd.DataFrame):
@@ -30,7 +29,7 @@ class Tweets:
         return self._hourwise_metrics
 
     def select_time_range(self, start_time: datetime, end_time: datetime,
-                          time_variable: str = 'created_at') -> None:
+                          time_variable: str = 'created_at'):
         """ returns only those tweets that lie in the specified time range
 
         :param start_point: starting point (inclusive) of the time range (only tweets after this point are returned)
@@ -40,8 +39,17 @@ class Tweets:
         :return: tweets after start_point AND before end_point
         """
 
-        return Tweets(self.tweets[(self.tweets[time_variable] >= start_time) & (self.tweets[time_variable] < end_time)])
+        return self.__class__(
+            self.tweets[(self.tweets[time_variable] >= start_time) & (self.tweets[time_variable] < end_time)]
+        )
 
+    # TODO there must be a smarter way to solve this inheritance issue!
+    def select_tweets_in_time_range(self, start_time: datetime, end_time: datetime,
+                          time_variable: str = 'created_at'):
+
+        return Tweets(
+            self.tweets[(self.tweets[time_variable] >= start_time) & (self.tweets[time_variable] < end_time)]
+        )
 
     def _preprocess_inputs(self, tweets) -> pd.DataFrame:
         """ Parses created_at to datetime, adds hour attributes and casts categorical variables (e.g. tweet type) to
@@ -127,3 +135,4 @@ class Tweets:
 
         # sort the output by time (hour)
         return output_df.sort_index()
+

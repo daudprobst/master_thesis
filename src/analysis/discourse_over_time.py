@@ -1,4 +1,5 @@
 from lib.TwitterData.tweets import Tweets
+from lib.TwitterData.tweets_in_phases import TweetsInPhases
 from lib.db.connection import connect_to_mongo
 from json import loads
 import pandas as pd
@@ -43,14 +44,16 @@ def test_for_trend(tweet_metrics_by_hour: pd.DataFrame, attribute: str) -> Tuple
 if __name__ == "__main__":
     connect_to_mongo()
 
-    firestorm_tweets = Tweets.from_hashtag_in_query('pinkygloves')
-    firestorm_tweets = firestorm_tweets.select_time_range(datetime.strptime("2021-04-13 12:00:00", '%Y-%m-%d %H:%M:%S'),
-                                     datetime.strptime("2021-04-17 12:00:00", '%Y-%m-%d %H:%M:%S'))
+    # firestorm_tweets = Tweets.from_hashtag_in_query('pinkygloves')
 
-    print(firestorm_tweets)
-    # smoothed_line_plots(firestorm_tweets.hourwise_metrics,
-    #                    x='hour', y=['total_tweets', 'retweet_pct', 'laggards_pct', 'de_pct']).show()
+    firestorm_tweets = TweetsInPhases.from_hashtag_in_query('pinkygloves').select_time_range(
+        datetime.strptime("2021-04-13 12:00:00", '%Y-%m-%d %H:%M:%S'),
+        datetime.strptime("2021-04-17 12:00:00", '%Y-%m-%d %H:%M:%S')
+    )
 
+
+    smoothed_line_plots(firestorm_tweets.hourwise_metrics,
+                        x='hour', y=['total_tweets', 'retweet_pct', 'laggards_pct', 'de_pct']).show()
 
     for variable in ['retweet_pct', 'laggards_pct']:
         test_statistics = test_for_trend(firestorm_tweets.hourwise_metrics, variable)
@@ -63,9 +66,8 @@ if __name__ == "__main__":
     fig = px.scatter(firestorm_tweets.hourwise_metrics, x="hour", y="laggards_pct", trendline="ols")
     fig.show()
 
-    '''
-    firestorm_phases = split_tweets_at_breakpoints(firestorm_df)
-    firestorm_phases_metrics_per_hour = [rates_per_hour(phase) for phase in firestorm_phases]
+
+    firestorm_phases_metrics_per_hour = [phase.hourwise_metrics for phase in firestorm_tweets.phases]
         # -> significant trend for laggards_pct, no significance for retweet_pct!
 
 
@@ -97,7 +99,6 @@ if __name__ == "__main__":
             equal_var=False, # TODO check whether we need this or if it can be true
             alternative='two-sided' # TODO adjust! {‘two-sided’, ‘less’, ‘greater’}
         ))
-    '''
 
 
 
