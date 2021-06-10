@@ -59,27 +59,27 @@ def rates_per_hour(tweets: pd.DataFrame, to_calculate: Sequence[Tuple[str, str, 
     """
 
     if not to_calculate:
-        # TODO is using only n-1 attributes to avoid multicollinearity correct?
         to_calculate = [
             ("total_tweets", None, None),
             # ==tweet type
             ("retweet_pct", 'tweet_type', 'retweet without comment'),
             ("original_tweet_pct", 'tweet_type', 'original tweet'),
             ("reply_pct", 'tweet_type', 'reply'),
-            # ("quoted_pct", 'tweet_type', 'retweet with comment'),
+            ("quoted_pct", 'tweet_type', 'retweet with comment'),
             # ==user type
             ("laggards_pct", 'user_type', 'laggard'),
             ("active_pct", 'user_type', 'active'),
-            # ("hyper_active_pct", 'user_type', 'hyper-active'),
+            ("hyper_active_pct", 'user_type', 'hyper-active'),
             # ==lang
             ("de_pct", 'lang', 'de'),
-            # ("en_pct", 'lang', 'en'),
+            ("en_pct", 'lang', 'en'),
         ]
 
     # setting up the output_df
     df_index = tweets[grouping_var].unique()
     cols = [x[0] for x in to_calculate]
     output_df = pd.DataFrame(columns=cols, index=df_index)
+    output_df[grouping_var] = output_df.index # also have index as column (often useful for plotting)
 
     # group all tweets that appeared in the same hour and calculate stats for them
     tweets_by_hour = tweets.groupby(grouping_var)

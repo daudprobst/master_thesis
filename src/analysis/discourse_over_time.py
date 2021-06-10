@@ -3,11 +3,13 @@ from lib.db.connection import connect_to_mongo
 from json import loads
 import pandas as pd
 from datetime import datetime
-import pymannkendall
 from lib.graphs.line_plots import smoothed_line_plots
 from lib.preprocessing.preprocess_tweets_df import rates_per_hour, preprocess_tweets_df, select_time_range
 from typing import Tuple
 import pymannkendall
+import plotly.express as px
+
+from src.analysis.change_point_detection import split_tweets_at_breakpoints
 
 
 def plot_rates_over_time(tweets: pd.DataFrame) -> None:
@@ -60,8 +62,8 @@ if __name__ == "__main__":
     # plot_rates_over_time(firestorm_df)
 
     tweet_metrics_by_hour = rates_per_hour(firestorm_df)
-    tweet_metrics_by_hour['hour'] = tweet_metrics_by_hour.index
 
+    ''' testing trend significance for whole time range
     for variable in ['retweet_pct', 'laggards_pct']:
         test_statistics = test_for_trend(tweet_metrics_by_hour, variable)
         print(f'Trend test for {variable}: {test_statistics}')
@@ -69,26 +71,56 @@ if __name__ == "__main__":
             print('No significant trend!')
         else:
             print('Trend significant!')
+    '''
+    # fig = px.scatter(tweet_metrics_by_hour, x="hour", y="retweet_pct", trendline="ols")
+    # fig.show()
 
+
+    firestorm_phases = split_tweets_at_breakpoints(firestorm_df)
+    firestorm_phases_metrics_per_hour = [rates_per_hour(phase) for phase in firestorm_phases]
         # -> significant trend for laggards_pct, no significance for retweet_pct!
 
-    
-
-
-
-
-    from statsmodels.tsa.seasonal import seasonal_decompose
-    import matplotlib.pyplot as plt
-
-
-
-    import plotly.express as px
-
-
-    fig = px.scatter(tweet_metrics_by_hour, x="hour", y="retweet_pct", trendline="ols")
-    fig.show()
 
     '''
+    for i, phase_df in enumerate(firestorm_phases_metrics_per_hour):
+        print(f'\n****Testing phase {i}****\n')
+        for variable in ['retweet_pct', 'laggards_pct']:
+            test_statistics = test_for_trend(phase_df, variable)
+            print(f'Trend test for {variable}: {test_statistics}')
+            if test_statistics.p > 0.05:
+                print('No significant trend!')
+            else:
+                print('Trend significant!')
+
+        # scatter plot with ols trendline
+        # fig = px.scatter(phase_df, x="hour", y="laggards_pct", trendline="ols")
+        # fig.show()
+
+
+        # TEST WHETHER PHASES ARE SIGNIFICANTLY DIFFERENT
+
+        from scipy.stats import ttest_ind
+        from statistics import mean
+        print("T-test for retweets")
+        print(mean(firestorm_phases_metrics_per_hour[0]['retweet_pct']))
+        print(mean(firestorm_phases_metrics_per_hour[1]['retweet_pct']))
+        print(ttest_ind(
+            a=firestorm_phases_metrics_per_hour[0]['retweet_pct'],
+            b=firestorm_phases_metrics_per_hour[1]['retweet_pct'],
+            equal_var=False, # TODO check whether we need this or if it can be true
+            alternative='two-sided' # TODO adjust! {‘two-sided’, ‘less’, ‘greater’}
+        ))
+    '''
+
+
+
+
+    '''
+    DECOMPOSING TS
+    
+    from statsmodels.tsa.seasonal import seasonal_decompose
+    import matplotlib.pyplot as plt
+    
     decomposed_ts = seasonal_decompose(tweet_metrics_by_hour['retweet_pct'], model='additive', extrapolate_trend='freq')
 
     plt.rcParams.update({'figure.figsize': (10, 10)})

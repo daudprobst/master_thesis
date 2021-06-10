@@ -34,7 +34,14 @@ def get_breakpoints(tweets: pd.DataFrame) -> List[datetime]:
 
     # ready to calculate the breakpoints!
     # transform data in structure that works with the ruptures package
-    signal = metrics_per_hour.to_numpy()
+
+    # TODO is using only n-1 attributes for each category correct to avoid multicollinearity?
+    VARIABLES_FOR_BREAKPOINT_ANALYSIS = [
+        'retweet_pct', 'original_tweet_pct', 'reply_pct',
+        'laggards_pct', 'active_pct',
+    ]
+
+    signal = metrics_per_hour[VARIABLES_FOR_BREAKPOINT_ANALYSIS].to_numpy()
     print(f'Calculating breakpoints for signal of shape {signal.shape}')
 
     # Specify the model params
@@ -48,6 +55,26 @@ def get_breakpoints(tweets: pd.DataFrame) -> List[datetime]:
     print(bkp_in_data)
     return [x.to_pydatetime() for x in metrics_per_hour.index[bkp_in_data]]
 
+def split_tweets_at_breakpoints(tweets: pd.DataFrame) -> List[pd.DataFrame]:
+    """ Determines the breakpoints for the specified tweets and splits the tweets at these positions
+
+    :param tweets: tweets to divide into their phases
+    :return: list of dfs, where each df contains all tweets in a phase
+    """
+    # Get Breakpoints
+    breakpoints = get_breakpoints(tweets)
+    print(breakpoints)
+    # last breakpoints seems to be irrelevant as it is just the last tweet
+    breakpoints.pop()
+
+    # Segmenting the original data into dfs
+
+    # Add one breakpoints all the way in the beginning and one all the way in the end
+    breakpoints_wrapped = [tweets['hour'].min().to_pydatetime()] + \
+                          breakpoints + [tweets['hour'].max().to_pydatetime()]
+
+    return [select_time_range(tweets, breakpoints_wrapped[i], breakpoints_wrapped[i+1], 'hour')
+                   for i in range(len(breakpoints_wrapped) - 1)]
 
 if __name__ == "__main__":
     #==== Importing Tweets ====#
@@ -61,22 +88,7 @@ if __name__ == "__main__":
     print(f'After selecting the timerange, there are {len(input_tweets)} in the dataset')
     # ================#
 
-    # Get Breakpoints
-    breakpoints = get_breakpoints(input_tweets)
-    print(breakpoints)
-    # last breakpoints seems to be irrelevant as it is just the last tweet
-    breakpoints.pop()
-
-
-    # Segmenting the original data into dfs
-
-    # Add one breakpoints all the way in the beginning and one all the way in the end
-    breakpoints_wrapped = [input_tweets['hour'].min().to_pydatetime()] + \
-                          breakpoints + [input_tweets['hour'].max().to_pydatetime()]
-
-
-    phases_dfs = [select_time_range(input_tweets, breakpoints_wrapped[i], breakpoints_wrapped[i+1], 'hour')
-                   for i in range(len(breakpoints_wrapped) - 1)]
+    phases_dfs = split_tweets_at_breakpoints(input_tweets)
 
     # Plotting!
     pie_plot_multiplot(phases_dfs, attributes_to_plot=['tweet_type', 'user_type', 'lang']).show()
