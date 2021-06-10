@@ -1,4 +1,4 @@
-from lib.db.queries.tweet_queries import get_tweets_for_search_query
+from lib.TwitterData.tweets import Tweets
 from lib.db.connection import connect_to_mongo
 from json import loads
 import pandas as pd
@@ -11,12 +11,6 @@ import plotly.express as px
 
 from src.analysis.change_point_detection import split_tweets_at_breakpoints
 
-
-def plot_rates_over_time(tweets: pd.DataFrame) -> None:
-    tweet_metrics_by_hour = rates_per_hour(tweets)
-    tweet_metrics_by_hour['hour'] = tweet_metrics_by_hour.index
-
-    smoothed_line_plots(tweet_metrics_by_hour, x='hour', y=['total_tweets', 'retweet_pct', 'laggards_pct', 'de_pct']).show()
 
 def test_for_trend(tweet_metrics_by_hour: pd.DataFrame, attribute: str) -> Tuple:
     """ Tests for a trend in the time series
@@ -49,39 +43,32 @@ def test_for_trend(tweet_metrics_by_hour: pd.DataFrame, attribute: str) -> Tuple
 if __name__ == "__main__":
     connect_to_mongo()
 
-    firestorm_tweets_selection = loads(
-        get_tweets_for_search_query('pinkygloves').only(
-            'user_type', 'created_at', 'text', 'tweet_type', "contains_url", "lang"
-        ).to_json()
-    )
-
-    firestorm_df = preprocess_tweets_df(pd.DataFrame.from_records(firestorm_tweets_selection))
-    firestorm_df = select_time_range(firestorm_df, datetime.strptime("2021-04-13 12:00:00", '%Y-%m-%d %H:%M:%S'),
+    firestorm_tweets = Tweets.from_hashtag_in_query('pinkygloves')
+    firestorm_tweets = firestorm_tweets.select_time_range(datetime.strptime("2021-04-13 12:00:00", '%Y-%m-%d %H:%M:%S'),
                                      datetime.strptime("2021-04-17 12:00:00", '%Y-%m-%d %H:%M:%S'))
 
-    # plot_rates_over_time(firestorm_df)
+    print(firestorm_tweets)
+    # smoothed_line_plots(firestorm_tweets.hourwise_metrics,
+    #                    x='hour', y=['total_tweets', 'retweet_pct', 'laggards_pct', 'de_pct']).show()
 
-    tweet_metrics_by_hour = rates_per_hour(firestorm_df)
 
-    ''' testing trend significance for whole time range
     for variable in ['retweet_pct', 'laggards_pct']:
-        test_statistics = test_for_trend(tweet_metrics_by_hour, variable)
+        test_statistics = test_for_trend(firestorm_tweets.hourwise_metrics, variable)
         print(f'Trend test for {variable}: {test_statistics}')
         if test_statistics.p > 0.05:
             print('No significant trend!')
         else:
             print('Trend significant!')
+
+    fig = px.scatter(firestorm_tweets.hourwise_metrics, x="hour", y="laggards_pct", trendline="ols")
+    fig.show()
+
     '''
-    # fig = px.scatter(tweet_metrics_by_hour, x="hour", y="retweet_pct", trendline="ols")
-    # fig.show()
-
-
     firestorm_phases = split_tweets_at_breakpoints(firestorm_df)
     firestorm_phases_metrics_per_hour = [rates_per_hour(phase) for phase in firestorm_phases]
         # -> significant trend for laggards_pct, no significance for retweet_pct!
 
 
-    '''
     for i, phase_df in enumerate(firestorm_phases_metrics_per_hour):
         print(f'\n****Testing phase {i}****\n')
         for variable in ['retweet_pct', 'laggards_pct']:
@@ -111,7 +98,6 @@ if __name__ == "__main__":
             alternative='two-sided' # TODO adjust! {‘two-sided’, ‘less’, ‘greater’}
         ))
     '''
-
 
 
 
