@@ -1,4 +1,4 @@
-from lib.twt_api.requests_base import make_request
+from lib.twitter_fetching.requests_base import make_request
 from lib.db.schemes import *
 
 from time import sleep

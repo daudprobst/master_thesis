@@ -1,4 +1,4 @@
-from lib.twt_api.TwitterSearchResponse import TwitterSearchResponse
+from lib.twitter_fetching.TwitterSearchResponse import TwitterSearchResponse
 
 import requests
 import os

@@ -1,8 +1,7 @@
-from lib.TwitterData.tweets import Tweets
+from lib.twitter_data.tweets import Tweets
 from typing import List
 import ruptures as rpt
 from datetime import datetime
-import pandas as pd
 
 class TweetsInPhases(Tweets):
 

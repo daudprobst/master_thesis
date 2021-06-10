@@ -1,16 +1,12 @@
-from lib.TwitterData.tweets import Tweets
-from lib.TwitterData.tweets_in_phases import TweetsInPhases
+from lib.twitter_data.tweets_in_phases import TweetsInPhases
 from lib.db.connection import connect_to_mongo
-from json import loads
 import pandas as pd
 from datetime import datetime
 from lib.graphs.line_plots import smoothed_line_plots
-from lib.preprocessing.preprocess_tweets_df import rates_per_hour, preprocess_tweets_df, select_time_range
 from typing import Tuple
 import pymannkendall
 import plotly.express as px
 
-from src.analysis.change_point_detection import split_tweets_at_breakpoints
 
 
 def test_for_trend(tweet_metrics_by_hour: pd.DataFrame, attribute: str) -> Tuple:

@@ -1,6 +1,6 @@
 from lib.db.connection import connect_to_mongo
-from lib.twt_api.requests_base import create_params, day_wrapping_datetimes
-from lib.twt_api.recent_search import recent_search, fetch_report_to_csv
+from lib.twitter_fetching.requests_base import create_params, day_wrapping_datetimes
+from lib.twitter_fetching.recent_search import recent_search, fetch_report_to_csv
 
 from datetime import timedelta, timezone, datetime
 
