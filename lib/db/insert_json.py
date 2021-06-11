@@ -1,17 +1,19 @@
 import json
 import lib.db.schemes as mongo_db
 from lib.db.connection import connect_to_mongo
-from typing import List, Dict
-import ijson
-from time import sleep
+from lib.preprocessing.add_attributes_to_entries import add_attributes_to_tweets
+from typing import List, Dict, Tuple
+from lib.db.queries.tweet_queries import get_tweets_for_search_query
+
 
 def file_reader_generator(filename: str):
     counter = 0
     for row in open(filename, "r"):
-        if counter % 500 == 0:
+        if counter % 5000 == 0:
             print(f'Read {counter} lines by now. Continuing reading lines...')
-        counter +=1
+        counter += 1
         yield row
+
 
 def insert_json_lines_file(filename: str, search_params: dict):
     """Expects a json document where each line represents a json doc not a "tru" json file"""
@@ -21,10 +23,11 @@ def insert_json_lines_file(filename: str, search_params: dict):
             tweet['search_params'] = search_params
             insert_one_tweet(tweet)
         except Exception as e:
-            print(f'Tweet insertion failed {e}')
+            print(f'Tweet insertion failed: {e}')
+
 
 def insert_one_tweet(entry: Dict) -> None:
-    mongo_db.Tweets.from_json(json.dumps(entry), True).save() # TODO force_insert=True?
+    mongo_db.Tweets.from_json(json.dumps(entry), True).save()  # TODO force_insert=True?
 
 
 def insert_many_tweets(entries: List[Dict]):
@@ -32,7 +35,55 @@ def insert_many_tweets(entries: List[Dict]):
     mongo_db.Tweets.objects.insert(tweet_db_instances, loadBulk=False)
 
 
+def clean_json(input_filname: str, output_filename: str) -> Tuple[int, int, int]:
+    """ From a files containing jsons attempts to remove all unwanted data (not directly containing info on tweets)
+    :param input_filname: file to read dirty json from
+    :param output_filename: file to write clean json to
+    :return: a clean report of the form
+    (nr of removed "newest_id", nr of removed "users" lines, nr of removed "media" lines)
+    """
+
+    newest_rmd, users_rmd, media_rmd = 0, 0, 0
+    with open(output_filename, 'w') as output:
+        for row in file_reader_generator(input_filname):
+            # check if first few chars include bannes words
+            first_eight_chars = row[:8]
+            if first_eight_chars == '{"newest':
+                newest_rmd += 1
+            elif first_eight_chars == '{"users"':
+                users_rmd += 1
+            elif first_eight_chars == '{"media"':
+                media_rmd += 1
+            else:
+                output.write(row)
+
+    return newest_rmd, users_rmd, media_rmd
+
+
 if __name__ == '__main__':
     connect_to_mongo()
-    insert_json_lines_file('/home/david/Desktop/Masterarbeit/twit_scrape/data/pinky_tweets.json',
-                           search_params={'query': '#pinkygloves OR #pinkygate'})
+
+    BASE_URL = '/home/david/Desktop/Masterarbeit/twit_scrape/data/'
+
+
+    ## CONFIGURE THESE TWO
+    insert_filename = 'maskenspahn.json' #
+    query = '#spahnruecktritt OR #spahnruecktrittjetzt'
+    #######
+
+
+    search_params = {'query': query}
+    print(len(get_tweets_for_search_query(query)))
+
+    print(f'Cleaning {insert_filename}\n')
+    clean_stats = clean_json(BASE_URL + 'dirty/' + insert_filename, BASE_URL + insert_filename)
+
+    print(f'**Removed {clean_stats[0]} meta stats, {clean_stats[1]} user stats, {clean_stats[2]} media stats')
+
+    print('\n**Starting to inserts tweets into the db now!')
+    insert_json_lines_file(BASE_URL + insert_filename, search_params=search_params)
+
+    print('Done with Inserting!\n')
+    
+    print('**Running preprocessing steps!')
+    add_attributes_to_tweets(get_tweets_for_search_query(query), ['tweet_type', 'user_type', 'contains_url'])

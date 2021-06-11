@@ -1,4 +1,5 @@
 from lib.twitter_data.tweets_in_phases import TweetsInPhases
+from lib.twitter_data.tweets import Tweets
 from lib.db.connection import connect_to_mongo
 import pandas as pd
 from datetime import datetime
@@ -42,27 +43,35 @@ if __name__ == "__main__":
 
     # firestorm_tweets = Tweets.from_hashtag_in_query('pinkygloves')
 
-    firestorm_tweets = TweetsInPhases.from_hashtag_in_query('pinkygloves').select_time_range(
-        datetime.strptime("2021-04-13 12:00:00", '%Y-%m-%d %H:%M:%S'),
-        datetime.strptime("2021-04-17 12:00:00", '%Y-%m-%d %H:%M:%S')
-    )
+    firestorm_tweets = TweetsInPhases.from_hashtag_in_query('AmthorRuecktritt').select_time_range(
+            datetime.strptime("2020-06-12 00:00:01", '%Y-%m-%d %H:%M:%S'),
+            datetime.strptime("2020-06-23 23:59:59", '%Y-%m-%d %H:%M:%S')
+        )
 
-
+    print(f'Firestorm has {len(firestorm_tweets)} phases and {len(firestorm_tweets.tweets)} tweets')
     smoothed_line_plots(firestorm_tweets.hourwise_metrics,
                         x='hour', y=['total_tweets', 'retweet_pct', 'laggards_pct', 'de_pct']).show()
 
+
+    print('The following breakpoints were detected:')
+    print(firestorm_tweets.breakpoints)
+
+    fig = px.scatter(firestorm_tweets.hourwise_metrics, x="hour", y="laggards_pct", trendline="ols")
+    fig.show()
+
+    # Testing significance of trends
     for variable in ['retweet_pct', 'laggards_pct']:
         test_statistics = test_for_trend(firestorm_tweets.hourwise_metrics, variable)
-        print(f'Trend test for {variable}: {test_statistics}')
+        print(f'\nTrend test for {variable}:\n')
+        print(test_statistics)
         if test_statistics.p > 0.05:
             print('No significant trend!')
         else:
             print('Trend significant!')
 
-    fig = px.scatter(firestorm_tweets.hourwise_metrics, x="hour", y="laggards_pct", trendline="ols")
-    fig.show()
+    # Testing significance of trends WITHIN PHASES
 
-
+    '''
     firestorm_phases_metrics_per_hour = [phase.hourwise_metrics for phase in firestorm_tweets.phases]
         # -> significant trend for laggards_pct, no significance for retweet_pct!
 
@@ -82,36 +91,23 @@ if __name__ == "__main__":
         # fig.show()
 
 
-        # TEST WHETHER PHASES ARE SIGNIFICANTLY DIFFERENT
+        # TEST WHETHER PHASES ARE SIGNIFICANTLY DIFFERENT - ONLY FOR TWO PHASES!
 
         from scipy.stats import ttest_ind
         from statistics import mean
-        print("T-test for retweets")
-        print(mean(firestorm_phases_metrics_per_hour[0]['retweet_pct']))
-        print(mean(firestorm_phases_metrics_per_hour[1]['retweet_pct']))
-        print(ttest_ind(
-            a=firestorm_phases_metrics_per_hour[0]['retweet_pct'],
-            b=firestorm_phases_metrics_per_hour[1]['retweet_pct'],
+        test_var = 'laggards_pct'
+        print(f'\n ****T-test: Significant differences between retweet_pct in groups? for {test_var}****')
+        print(mean(firestorm_phases_metrics_per_hour[0][test_var]))
+        print(mean(firestorm_phases_metrics_per_hour[1][test_var]))
+        ttest_result = ttest_ind(
+            a=firestorm_phases_metrics_per_hour[0][test_var],
+            b=firestorm_phases_metrics_per_hour[1][test_var],
             equal_var=False, # TODO check whether we need this or if it can be true
             alternative='two-sided' # TODO adjust! {‘two-sided’, ‘less’, ‘greater’}
-        ))
-
-
-
-    '''
-    DECOMPOSING TS
-    
-    from statsmodels.tsa.seasonal import seasonal_decompose
-    import matplotlib.pyplot as plt
-    
-    decomposed_ts = seasonal_decompose(tweet_metrics_by_hour['retweet_pct'], model='additive', extrapolate_trend='freq')
-
-    plt.rcParams.update({'figure.figsize': (10, 10)})
-    decomposed_ts.plot().suptitle('Additive Decompose', fontsize=22)
-    plt.show()
-
-    df_reconstructed = pd.concat([decomposed_ts.seasonal, decomposed_ts.trend, decomposed_ts.resid, decomposed_ts.observed], axis=1)
-    df_reconstructed.columns = ['seas', 'trend', 'resid', 'actual_values']
-    print(df_reconstructed.iloc[15])
-    print(df_reconstructed.head())
+        )
+        pvalue = ttest_result.pvalue
+        if pvalue < 0.05:
+            print(f'Significant result with p-value of {pvalue} ')
+        else:
+            print(f'No significant result with p-value of {pvalue} ')
     '''

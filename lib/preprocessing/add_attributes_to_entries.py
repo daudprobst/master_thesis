@@ -18,7 +18,7 @@ def add_attributes_to_tweets(tweets: QuerySet, attributes: List[str]):
 
     for i, tweet in enumerate(tweets):
         tweet_dict = loads(tweet.to_json())
-        if(i % 100 == 0):
+        if(i % 1000 == 0):
             print(f'Added attributes for {i} tweets. Continuing...')
         for attribute in attributes:
             if attribute == 'tweet_type':
@@ -56,4 +56,4 @@ def calculate_user_groups(tweets: QuerySet) -> Dict:
 if __name__ == "__main__":
     connect_to_mongo()
     #print(len(get_tweets_for_search_query('pinkygloves')))
-    add_attributes_to_tweets(get_tweets_for_search_query('pinkygloves'), ['tweet_type', 'user_type', 'contains_url'])
+    add_attributes_to_tweets(get_tweets_for_search_query('Lehmann'), ['tweet_type', 'user_type', 'contains_url'])

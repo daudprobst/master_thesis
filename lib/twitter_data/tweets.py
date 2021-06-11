@@ -16,7 +16,7 @@ class Tweets:
 
     @classmethod
     def from_hashtag_in_query(cls, hashtag: str):
-        firestorm_tweets_selection = loads(get_tweets_for_search_query('pinkygloves').to_json())
+        firestorm_tweets_selection = loads(get_tweets_for_search_query(hashtag).to_json())
         return cls(pd.DataFrame.from_records(firestorm_tweets_selection))
 
 
