@@ -2,8 +2,8 @@ from lib.twitter_fetching.TwitterSearchResponse import TwitterSearchResponse
 
 import requests
 import os
-from datetime import datetime, timedelta, time, timezone
-from typing import Sequence, Tuple
+from datetime import datetime
+from typing import Sequence
 
 
 def auth(bearer_token: str = 'TWT_BEARER_TOKEN') -> str:
@@ -104,17 +104,3 @@ def make_request(base_url: str, params: dict, headers: dict = None, request_type
         raise Exception(response.status_code, response.text)
 
     return TwitterSearchResponse(response.json(), params)
-
-
-def day_wrapping_datetimes(day: datetime) -> Tuple[datetime, datetime]:
-    """
-    Returns the datetimes for the first second of the day and the first second of the next day
-    (we need first second of next day not last second of this day because enddate is exclusive for twitter api)
-    :param day: day for which we want the first and last second
-    :return: Tuple containing datetimes for first and last second of day
-    """
-    return (
-        #use tzinfo=datetime.timezone.utc instead?
-        datetime.combine(day.date(), time.min, tzinfo=timezone.utc),
-        datetime.combine((day + timedelta(days=1)).date(), time.min, tzinfo=timezone.utc)
-    )

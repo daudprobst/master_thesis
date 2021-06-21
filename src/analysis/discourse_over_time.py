@@ -7,7 +7,7 @@ from lib.graphs.line_plots import smoothed_line_plots
 from typing import Tuple
 import pymannkendall
 import plotly.express as px
-
+from lib.db.queried import QUERIES as queried_firestorms
 
 
 def test_for_trend(tweet_metrics_by_hour: pd.DataFrame, attribute: str) -> Tuple:
@@ -41,16 +41,20 @@ def test_for_trend(tweet_metrics_by_hour: pd.DataFrame, attribute: str) -> Tuple
 if __name__ == "__main__":
     connect_to_mongo()
 
-    # firestorm_tweets = Tweets.from_hashtag_in_query('pinkygloves')
+    # select firestorm
+    firestorm_meta = queried_firestorms['lehmann']
+    ####
 
-    firestorm_tweets = TweetsInPhases.from_hashtag_in_query('AmthorRuecktritt').select_time_range(
-            datetime.strptime("2020-06-12 00:00:01", '%Y-%m-%d %H:%M:%S'),
-            datetime.strptime("2020-06-23 23:59:59", '%Y-%m-%d %H:%M:%S')
-        )
+    print(firestorm_meta['query'],  firestorm_meta['true_start_date'], firestorm_meta['true_end_date'])
+
+    firestorm_tweets = TweetsInPhases.from_hashtag_in_query(firestorm_meta['query']).select_time_range(
+        firestorm_meta['true_start_date'], firestorm_meta['true_end_date']
+    )
+
 
     print(f'Firestorm has {len(firestorm_tweets)} phases and {len(firestorm_tweets.tweets)} tweets')
     smoothed_line_plots(firestorm_tweets.hourwise_metrics,
-                        x='hour', y=['total_tweets', 'retweet_pct', 'laggards_pct', 'de_pct']).show()
+                        x='hour', y=['total_tweets', 'retweet_pct', 'laggards_pct', 'de_pct'], window_size=5).show()
 
 
     print('The following breakpoints were detected:')
@@ -69,8 +73,8 @@ if __name__ == "__main__":
         else:
             print('Trend significant!')
 
-    # Testing significance of trends WITHIN PHASES
 
+    # Testing significance of trends WITHIN PHASES
     '''
     firestorm_phases_metrics_per_hour = [phase.hourwise_metrics for phase in firestorm_tweets.phases]
         # -> significant trend for laggards_pct, no significance for retweet_pct!

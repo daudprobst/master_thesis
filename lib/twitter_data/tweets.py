@@ -39,6 +39,17 @@ class Tweets:
         :return: tweets after start_point AND before end_point
         """
 
+        # TODO at least throw a warning if we do this
+        # remove timezone information
+
+
+        if start_time.tzinfo:
+            print('WARNING: Ignored tz informaiton for selecting range of tweets')
+            start_time = start_time.replace(tzinfo=None)
+        if end_time.tzinfo:
+            print('WARNING: Ignored tz informaiton for selecting range of tweets')
+            end_time = end_time.replace(tzinfo=None)
+
         return self.__class__(
             self.tweets[(self.tweets[time_variable] >= start_time) & (self.tweets[time_variable] < end_time)]
         )
