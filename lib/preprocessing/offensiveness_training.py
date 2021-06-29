@@ -6,7 +6,7 @@ from tqdm import tqdm
 from collections import namedtuple
 
 import pandas as pd
-from sklearn.metrics import precision_recall_fscore_support, classification_report
+from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, AdamW, get_linear_schedule_with_warmup
 

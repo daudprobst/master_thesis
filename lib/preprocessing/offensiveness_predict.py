@@ -7,8 +7,9 @@ from transformers.models.distilbert.tokenization_distilbert_fast import DistilBe
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, precision_recall_fscore_support
 
+from collections import Counter
 from typing import List, Tuple
 
 
@@ -45,27 +46,41 @@ def predict_in_batches(model: transformers.models, dataset: SequenceClassificati
     return y_pred, y_true
 
 
-if __name__ == "__main__":
-    CLASS_LIST = ['OFFENSE', 'OTHER']
-
-    # load model
-    model, tokenizer = load_model(
-        '/home/david/Desktop/Masterarbeit/twit_scrape/models/german_hatespeech_detection_finetuned'
-    )
+def evaluate_model(model, tokenizer, test_file: str, class_list: List[str], log_errors: bool = False) -> None:
+    """Prints out a few evaluations for the model"""
 
     # load data
-    labeled_tweets = read_germeval_data(['/home/david/Desktop/Masterarbeit/twit_scrape/data/daud_aggr_labels.txt'],
-                                        CLASS_LIST)
+    labeled_tweets = read_germeval_data([test_file], CLASS_LIST)
 
     # tiny bit of preprocessing for bringing tweets into GermEval 2019 structure
+    print('Input DataFrame look like this:')
     print(labeled_tweets.head())
+
 
     testset = SequenceClassificationDataset(list(labeled_tweets.text), list(labeled_tweets.label), tokenizer)
 
     y_pred, y_true = predict_in_batches(model, testset)
 
-    print(classification_report(y_true, y_pred, labels=[0, 1]))
-    from collections import Counter
+    if log_errors:
+        for i, (prediction, true_label) in enumerate(zip(y_pred, y_true)):
+            if prediction != true_label:
+                print(labeled_tweets.iloc[i].text)
+                print(f'Prediction was {CLASS_LIST[prediction]}, true value was {CLASS_LIST[int(true_label)]}\n')
 
-    print(Counter(y_true))
-    print(Counter(y_pred))
+    print(classification_report(y_true, y_pred, labels=[0, 1]))
+    f_score_macro = precision_recall_fscore_support(y_true, y_pred, labels=[0, 1], average="macro")[2]
+    print(f'F-Score model average (macro): {f_score_macro}')
+
+    print(f'True Distribution: {Counter(y_true)}')
+    print(f'Predicted Distribution: {Counter(y_pred)}')
+
+
+if __name__ == "__main__":
+    CLASS_LIST = ['OFFENSE', 'OTHER']
+
+    model, tokenizer = load_model(
+        '/home/david/Desktop/Masterarbeit/twit_scrape/models/german_hatespeech_detection_finetuned'
+    )
+
+    evaluate_model(model, tokenizer, '/home/david/Desktop/Masterarbeit/twit_scrape/data/daud_aggr_labels.txt',
+                   CLASS_LIST)
