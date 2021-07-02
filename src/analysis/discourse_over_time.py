@@ -42,7 +42,7 @@ if __name__ == "__main__":
     connect_to_mongo()
 
     # select firestorm
-    firestorm_meta = queried_firestorms['lehmann']
+    firestorm_meta = queried_firestorms['pinkygloves']
     ####
 
     print(firestorm_meta['query'],  firestorm_meta['true_start_date'], firestorm_meta['true_end_date'])
@@ -54,14 +54,18 @@ if __name__ == "__main__":
 
     print(f'Firestorm has {len(firestorm_tweets)} phases and {len(firestorm_tweets.tweets)} tweets')
     smoothed_line_plots(firestorm_tweets.hourwise_metrics,
-                        x='hour', y=['total_tweets', 'retweet_pct', 'laggards_pct', 'de_pct'], window_size=5).show()
+                        x='hour', y=['total_tweets', 'offensive_pct', 'retweet_pct', 'laggards_pct', 'de_pct'],
+                        window_size=5).show()
 
+    fig = px.scatter(firestorm_tweets.hourwise_metrics, x="hour", y="offensive_pct", trendline="ols")
+    fig.show()
 
+    
+    '''
     print('The following breakpoints were detected:')
     print(firestorm_tweets.breakpoints)
 
-    fig = px.scatter(firestorm_tweets.hourwise_metrics, x="hour", y="laggards_pct", trendline="ols")
-    fig.show()
+
 
     # Testing significance of trends
     for variable in ['retweet_pct', 'laggards_pct']:
@@ -72,6 +76,8 @@ if __name__ == "__main__":
             print('No significant trend!')
         else:
             print('Trend significant!')
+
+    '''
 
 
     # Testing significance of trends WITHIN PHASES

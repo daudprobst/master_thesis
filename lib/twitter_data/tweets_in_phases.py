@@ -37,8 +37,7 @@ class TweetsInPhases(Tweets):
         :return: list of breakpoints; Breakpoint at the end of the dataset (i.e. at last position) is not included
         """
 
-        signal = self.hourwise_metrics[analysis_vars].to_numpy()
-        # print(f'Calculating breakpoints for signal of shape {signal.shape}')
+        signal = self.hourwise_metrics[analysis_vars].to_numpy().astype('float64')
 
         # Specify the model params
         algo = rpt.Pelt(model='rbf').fit(signal)

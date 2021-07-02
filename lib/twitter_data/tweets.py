@@ -122,6 +122,9 @@ class Tweets:
                 # ==lang
                 ("de_pct", 'lang', 'de'),
                 ("en_pct", 'lang', 'en'),
+                # ==offensiveness
+                ("offensive_pct", 'is_offensive', True), #CAREFUL WITH THE NONE VALUES!!!#
+                ("not_offensive_pct", 'is_offensive', False)  # FOR TESTING AROUND WITH NONE VALUES
             ]
 
         # setting up the output_df
@@ -138,7 +141,10 @@ class Tweets:
                 if col == 'total_tweets':
                     output_df.at[name, 'total_tweets'] = total_length
                 else:
-                    output_df.at[name, col] = group[var_name].value_counts()[value] / total_length
+                    try:
+                        output_df.at[name, col] = group[var_name].value_counts()[value] / total_length
+                    except KeyError: # sometimes value does not exist in value_counts (0 entries)
+                        output_df.at[name, col] = 0
 
         if 'total_tweets' in output_df.columns:
             # Normalizing total length (only works since data has only positive values)
