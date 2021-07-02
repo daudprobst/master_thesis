@@ -5,6 +5,7 @@ from json import loads
 from lib.db.queries.tweet_queries import get_tweets_for_search_query
 from lib.db.connection import connect_to_mongo
 from lib.db.queries.tweet_mutations import add_attribute_to_tweet
+from lib.db.helpers import query_set_to_df
 from lib.preprocessing.tweet_type import tweet_type
 from lib.preprocessing.misc_attribute_helpers import contains_url
 from lib.preprocessing.user_type import user_type
@@ -31,8 +32,11 @@ def add_attributes_to_tweets(tweets: QuerySet, attributes: List[str]):
                 raise ValueError(f'No know preprocessing operation exists for adding the attribute {attribute}')
             add_attribute_to_tweet(tweet, attribute, value)
 
+
 def calculate_user_groups(tweets: QuerySet) -> Dict:
-    firestorm_df = pd.DataFrame.from_records(loads(tweets.to_json()))
+    firestorm_df = query_set_to_df(tweets)
+    print(len(firestorm_df))
+    print(firestorm_df.columns)
     # group by author id
     firestorms_user_activity_counts = firestorm_df.groupby(['author_id']).size().reset_index(name='count')
 
@@ -56,4 +60,4 @@ def calculate_user_groups(tweets: QuerySet) -> Dict:
 if __name__ == "__main__":
     connect_to_mongo()
     #print(len(get_tweets_for_search_query('pinkygloves')))
-    add_attributes_to_tweets(get_tweets_for_search_query('Lehmann'), ['tweet_type', 'user_type', 'contains_url'])
+    add_attributes_to_tweets(get_tweets_for_search_query('lehman'), ['tweet_type', 'user_type', 'contains_url'])

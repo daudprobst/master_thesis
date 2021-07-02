@@ -19,6 +19,7 @@ def get_tweets_for_hashtags(*hashtags: Sequence[str]) -> QuerySet:
 
     return Tweets.objects(entities__hashtags__tag__in=hashtags)
 
+
 def get_tweets_for_search_query(hashtag: str) -> QuerySet:
     """Returns all tweets that were returned for a query that contains the specified hashtag
 
@@ -29,7 +30,12 @@ def get_tweets_for_search_query(hashtag: str) -> QuerySet:
     # Remove leading # symbol if they were included in the input
     hashtags = remove_leading_hashtag(hashtag)
 
-    return Tweets.objects(search_params__query__icontains=hashtag)
+    results = Tweets.objects(search_params__query__icontains=hashtag)
+
+    if len(results) == 0:
+        print(f'WARNING: Your query "{hashtag}" did not return any results!')
+
+    return results
 
 
 def get_tweets_for_search_query_sorted_by_time(hashtag: str) -> List[dict]:
@@ -37,6 +43,7 @@ def get_tweets_for_search_query_sorted_by_time(hashtag: str) -> List[dict]:
         'created_at', 'user_type', 'tweet_type', 'contains_url', 'lang'
     )
     return loads(tweets_query_set_sorted.to_json())
+
 
 if __name__ == "__main__":
     connect_to_mongo()

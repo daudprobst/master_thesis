@@ -24,26 +24,25 @@ def load_model(model_filename: str) -> Tuple[DistilBertForSequenceClassification
     return model, tokenizer
 
 
-def predict_in_batches(model: transformers.models, dataset: SequenceClassificationDataset,
-                       batch_size: int = 4) -> Tuple[List[int], List[int]]:
+def predict_in_batches(model: transformers.models, tokenizer, dataset: List[str],
+                       batch_size: int = 4) -> List[int]:
     """ Predicts the labels for the entries in dataset using the model passed
     :param model: the model to use for prediction
     :param dataset: the values to predict
     :param batch_size: batch size for DataLoader (must be same as for model?)
-    :return: For Tuple containing (1) list of predictions for dataset (2) list of true labels
+    :return: list of predictions for dataset
     """
-    y_true = []
     y_pred = []
 
     with torch.no_grad():
         model.eval()
-        for batch in tqdm(DataLoader(dataset, batch_size=batch_size, collate_fn=dataset.collate_fn)):
-            output = model(**batch["model_inputs"])
-            logits = output.logits
-            y_true.extend(batch['label'].float().tolist())
-            y_pred.extend(logits.argmax(dim=1).tolist())
+        for batch in tqdm(DataLoader(dataset, batch_size=batch_size, shuffle=False)):   
+            batch_tokens = tokenizer(batch, return_tensors="pt",
+                             padding=True, truncation=True, max_length=64)
+            output = model(**batch_tokens)
+            y_pred.extend(output.logits.argmax(dim=1).tolist())
 
-    return y_pred, y_true
+    return y_pred
 
 
 def evaluate_model(model, tokenizer, test_file: str, class_list: List[str], log_errors: bool = False) -> None:
@@ -56,11 +55,9 @@ def evaluate_model(model, tokenizer, test_file: str, class_list: List[str], log_
     print('Input DataFrame look like this:')
     print(labeled_tweets.head())
 
-
-    testset = SequenceClassificationDataset(list(labeled_tweets.text), list(labeled_tweets.label), tokenizer)
-
-    y_pred, y_true = predict_in_batches(model, testset)
-
+    y_true = list(labeled_tweets.label)
+    y_pred = predict_in_batches(model, tokenizer, list(labeled_tweets.text))
+    
     if log_errors:
         for i, (prediction, true_label) in enumerate(zip(y_pred, y_true)):
             if prediction != true_label:
@@ -82,5 +79,5 @@ if __name__ == "__main__":
         '/home/david/Desktop/Masterarbeit/twit_scrape/models/german_hatespeech_detection_finetuned'
     )
 
-    evaluate_model(model, tokenizer, '/home/david/Desktop/Masterarbeit/twit_scrape/data/daud_aggr_labels.txt',
-                   CLASS_LIST)
+    evaluate_model(model, tokenizer, '/home/david/Desktop/Masterarbeit/twit_scrape/data/aggr_sample/sample_labeled.csv',
+                   CLASS_LIST, False)
