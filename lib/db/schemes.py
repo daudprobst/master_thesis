@@ -49,6 +49,7 @@ class Tweets(Document):
     contains_url = BooleanField()
     user_type = StringField()
     fetch_date = DateTimeField(default=datetime.utcnow)
+    is_offensive = BooleanField()
 
 
 class Users(Document):

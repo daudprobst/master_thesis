@@ -1,5 +1,5 @@
-from offensiveness_training import read_germeval_data, SequenceClassificationDataset
-
+from offensiveness_training import read_germeval_data, CLASS_LIST
+import pandas as pd
 import transformers
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from transformers.models.distilbert.modeling_distilbert import DistilBertForSequenceClassification
@@ -8,6 +8,8 @@ import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from sklearn.metrics import classification_report, precision_recall_fscore_support
+
+from timebudget import timebudget
 
 from collections import Counter
 from typing import List, Tuple
@@ -24,10 +26,18 @@ def load_model(model_filename: str) -> Tuple[DistilBertForSequenceClassification
     return model, tokenizer
 
 
+def predict_single(model: transformers.models, tokenizer, text: str) -> int:
+    token = tokenizer([text], return_tensors="pt",
+              padding=True, truncation=True, max_length=64)
+    output = model(**token)
+    return int(output.logits.argmax(dim=1))
+
+
 def predict_in_batches(model: transformers.models, tokenizer, dataset: List[str],
                        batch_size: int = 4) -> List[int]:
     """ Predicts the labels for the entries in dataset using the model passed
     :param model: the model to use for prediction
+    :param tokenizer: the tokenizer used for the model
     :param dataset: the values to predict
     :param batch_size: batch size for DataLoader (must be same as for model?)
     :return: list of predictions for dataset
@@ -45,13 +55,8 @@ def predict_in_batches(model: transformers.models, tokenizer, dataset: List[str]
     return y_pred
 
 
-def evaluate_model(model, tokenizer, test_file: str, class_list: List[str], log_errors: bool = False) -> None:
+def evaluate_model(model, tokenizer, labeled_tweets: pd.DataFrame, class_list: List[str], log_errors: bool = False) -> None:
     """Prints out a few evaluations for the model"""
-
-    # load data
-    labeled_tweets = read_germeval_data([test_file], CLASS_LIST)
-
-    # tiny bit of preprocessing for bringing tweets into GermEval 2019 structure
     print('Input DataFrame look like this:')
     print(labeled_tweets.head())
 
@@ -73,11 +78,24 @@ def evaluate_model(model, tokenizer, test_file: str, class_list: List[str], log_
 
 
 if __name__ == "__main__":
-    CLASS_LIST = ['OFFENSE', 'OTHER']
-
     model, tokenizer = load_model(
-        '/home/david/Desktop/Masterarbeit/twit_scrape/models/german_hatespeech_detection_finetuned'
+        '../../models/german_hatespeech_detection_finetuned'
     )
 
-    evaluate_model(model, tokenizer, '/home/david/Desktop/Masterarbeit/twit_scrape/data/aggr_sample/sample_labeled.csv',
-                   CLASS_LIST, False)
+    tweets = read_germeval_data(['../../data/aggr_sample/sample_labeled.csv'],
+                                CLASS_LIST)
+
+    with timebudget("Predicting in batches"):
+        pred_batches = predict_in_batches(model, tokenizer, list(tweets.text))
+
+    with timebudget("Predicting one at a time"):
+        pred_singles = []
+        for tweet in list(tweets.text):
+            pred_singles.append(
+                predict_single(model, tokenizer, tweet)
+            )
+
+    print(pred_batches == pred_singles)
+
+    print("\n" + str(pred_batches))
+    print("\n" + str(pred_singles))

@@ -7,6 +7,11 @@ from mongoengine import QuerySet
 from typing import Sequence, List
 
 
+def get_tweet_for_id(tweet_id) -> QuerySet:
+    """Returns the tweet for the id (Query Set of length 1 if the tweet exists, length 0 if it does not exist)"""
+    return Tweets.objects.get(id=tweet_id)
+
+
 def get_tweets_for_hashtags(*hashtags: Sequence[str]) -> QuerySet:
     """Returns all tweets that contained one of the specified hashtags
 

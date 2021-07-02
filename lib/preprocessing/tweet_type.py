@@ -9,7 +9,9 @@ def tweet_type(tweet: dict) -> str:
     if not tweet['referenced_tweets']:
         return 'original tweet'
 
-    # TODO in which cases can there be multiple referenced tweets? For now we just look at the first reference!
+    # TODO sometimes there are multiple referenced tweets like
+    #  [{'id': 1392103648059080705, 'type': 'quoted'}, {'id': 1393088697713709057, 'type': 'replied_to'}]
+    #  how should we treat these cases? For now we simply focus on the first tweet
     reference_type = tweet['referenced_tweets'][0]['type']
 
     if reference_type == 'quoted':

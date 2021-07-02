@@ -1,6 +1,6 @@
 from lib.db.schemes import Tweets
 
-# TODO we really don't want to check each attribute before setting it...
+
 def add_attribute_to_tweet(tweet: Tweets, attribute: str, value) -> None:
     ''' Sets an attribute for a specific tweet to a value
     :param tweet: tweet to update
@@ -13,5 +13,7 @@ def add_attribute_to_tweet(tweet: Tweets, attribute: str, value) -> None:
         return tweet.update(set__contains_url=value)
     elif attribute == 'user_type':
         return tweet.update(set__user_type=value)
+    elif attribute == 'is_offensive':
+        return tweet.update(set__is_offensive=value)
     else:
-        raise ValueError(f'No know preprocessing operation exists for adding the attribute {attribute}')
+        raise ValueError(f'No know operation exists for adding the attribute {attribute}')

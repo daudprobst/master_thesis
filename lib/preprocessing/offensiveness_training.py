@@ -12,10 +12,11 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, Adam
 
 from typing import List
 
+CLASS_LIST = ['OFFENSE', 'OTHER']
 
 ArgsDesc = namedtuple('ArgsDesc', 'dest num_epochs gradient_accumulation_steps batch_size learning_rate adam_epsilon only_prediction')
 ARGS = ArgsDesc(
-	dest="/home/david/Desktop/Masterarbeit/twit_scrape/german_hatespeech_detection_finetuned",
+	dest="../../data/german_hatespeech_detection_finetuned",
 	num_epochs=4,
 	gradient_accumulation_steps=8,
 	batch_size=4,
@@ -89,7 +90,7 @@ def evaluate_epoch(model, dataset):
 
 
 def main(model_name: str, train_files: List[str]):
-	CLASS_LIST = ['OFFENSE', 'OTHER']
+
 	train_data = read_germeval_data(train_files, CLASS_LIST)
 
 	print(f'First few Rows of data: \n {train_data.head()}')
@@ -171,9 +172,9 @@ def main(model_name: str, train_files: List[str]):
 
 if __name__ == "__main__":
 	TRAIN_FILES = [
-		'/home/david/Desktop/Masterarbeit/offensiveness_training_data/germeval2018.test_.txt',
-		'/home/david/Desktop/Masterarbeit/offensiveness_training_data/germeval2018.training.txt',
-		'/home/david/Desktop/Masterarbeit/offensiveness_training_data/germeval2019.training_subtask1_2_korrigiert.txt'
+		'../../data/offensiveness_training_data/germeval2018.test_.txt',
+		'../../data/offensiveness_training_data/germeval2018.training.txt',
+		'../../data/offensiveness_training_data/germeval2019.training_subtask1_2_korrigiert.txt'
 	]
 
 	main(train_files=TRAIN_FILES, model_name='distilbert-base-german-cased')
