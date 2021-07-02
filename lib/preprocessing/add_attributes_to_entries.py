@@ -17,7 +17,7 @@ from lib.preprocessing.offensiveness_training import CLASS_LIST
 from typing import List, Dict, Tuple
 
 
-def add_attributes_to_tweets(tweets: QuerySet, attributes: List[str]):
+def add_attributes_to_tweets(tweets: QuerySet, attributes: List[str], overwrite: bool = False):
     if 'user_type' in attributes:
         user_groups = calculate_user_groups(tweets)
 
@@ -29,18 +29,19 @@ def add_attributes_to_tweets(tweets: QuerySet, attributes: List[str]):
         if(i % 1000 == 0):
             print(f'Added attributes for {i} tweets. Continuing...')
         for attribute in attributes:
-            if attribute == 'tweet_type':
-                value = tweet_type(tweet_dict)
-            elif attribute == 'contains_url':
-                value =  contains_url(tweet_dict)
-            elif attribute == 'user_type':
-                value = user_type(tweet_dict, user_groups)
-            elif attribute == 'is_offensive':
-                value = determine_offensiveness(tweet_dict, model, tokenizer)
-            else:
-                raise ValueError(f'No known preprocessing operation exists for adding the attribute {attribute}')
+            if overwrite or attribute not in tweet_dict:
+                if attribute == 'tweet_type':
+                    value = tweet_type(tweet_dict)
+                elif attribute == 'contains_url':
+                    value =  contains_url(tweet_dict)
+                elif attribute == 'user_type':
+                    value = user_type(tweet_dict, user_groups)
+                elif attribute == 'is_offensive':
+                    value = determine_offensiveness(tweet_dict, model, tokenizer)
+                else:
+                    raise ValueError(f'No known preprocessing operation exists for adding the attribute {attribute}')
 
-            add_attribute_to_tweet(tweet, attribute, value)
+                add_attribute_to_tweet(tweet, attribute, value)
 
 
 def calculate_user_groups(tweets: QuerySet) -> Dict:
@@ -102,7 +103,7 @@ def determine_offensiveness(tweet: dict, model, tokenizer):
 
 if __name__ == "__main__":
     connect_to_mongo()
-    query_set = get_tweets_for_search_query('pinkygloves')
+    query_set = get_tweets_for_search_query('spahnruecktritt')
     print(f'Starting to calculate offensiveness for {len(query_set)} tweets')
 
     with timebudget(f'Calculating offensiveness for {len(query_set)} tweets'):

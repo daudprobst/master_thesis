@@ -60,7 +60,6 @@ if __name__ == "__main__":
     fig = px.scatter(firestorm_tweets.hourwise_metrics, x="hour", y="offensive_pct", trendline="ols")
     fig.show()
 
-    
     '''
     print('The following breakpoints were detected:')
     print(firestorm_tweets.breakpoints)
