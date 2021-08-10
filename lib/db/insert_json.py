@@ -6,9 +6,9 @@ from typing import List, Dict, Tuple
 from lib.db.queries.tweet_queries import get_tweets_for_search_query
 
 
-def file_reader_generator(filename: str):
+def file_reader_generator(filename: str, encoding=None):
     counter = 0
-    for row in open(filename, "r"):
+    for row in open(filename, "r", encoding=encoding):
         if counter % 5000 == 0:
             print(f'Read {counter} lines by now. Continuing reading lines...')
         counter += 1
@@ -16,8 +16,8 @@ def file_reader_generator(filename: str):
 
 
 def insert_json_lines_file(filename: str, search_params: dict):
-    """Expects a json document where each line represents a json doc not a "tru" json file"""
-    for row in file_reader_generator(filename):
+    """Expects a json document where each line represents a json doc not a "true" json file"""
+    for row in file_reader_generator(filename, encoding='utf-8-sig'):
         try:
             tweet = json.loads(row)
             tweet['search_params'] = search_params
@@ -63,12 +63,12 @@ def clean_json(input_filname: str, output_filename: str) -> Tuple[int, int, int]
 if __name__ == '__main__':
     connect_to_mongo()
 
-    BASE_URL = '/home/david/Desktop/Masterarbeit/twit_scrape/data/'
+    BASE_URL = '/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms/'
 
 
     ## CONFIGURE THESE TWO
-    insert_filename = 'maskenspahn.json' #
-    query = '#spahnruecktritt OR #spahnruecktrittjetzt'
+    insert_filename = 'laschetLacht.json'
+    query = '#Laschetlacht OR #LaschetRuecktritt OR #LautGegenLaschet OR conversation_id:1416449185172369411'
     #######
 
 
@@ -85,5 +85,5 @@ if __name__ == '__main__':
 
     print('Done with Inserting!\n')
     
-    print('**Running preprocessing steps!')
+    print('**Running preprocessing steps (aggression not added)!')
     add_attributes_to_tweets(get_tweets_for_search_query(query), ['tweet_type', 'user_type', 'contains_url'])
