@@ -29,17 +29,18 @@ def delete_tweets(search_query: str) -> None:
     :param search_query: search query for the tweets you want to deleted
     """
 
-    tweets_to_delete = get_tweets_for_search_query(search_query)
-    print(f'WARNING: {len(tweets_to_delete)} tweets will be deleted for query {search_query}. Stop the program now '
+    tweets_to_delete = get_tweets_for_search_query(search_query, full_match_required=True)
+    print(f'WARNING: {len(tweets_to_delete)} tweets will be deleted for query "{search_query}". Stop the program now '
           f'in case you want to cancel the deletion.')
     for i in reversed(range(10)):
         print(i)
         sleep(1)
+    print("Deleting...")
+    tweets_to_delete.delete()
 
-    # TODO delete tweets
 
 
 
 if __name__ == "__main__":
     connect_to_mongo()
-    delete_tweets('#MünchenMachEsTrotzdem')
+    delete_tweets('#HelmeRettenLeben OR #lookslikeshit OR #saveslifes OR conversation_id:1108842805089177615')
