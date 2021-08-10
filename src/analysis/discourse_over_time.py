@@ -9,6 +9,18 @@ import pymannkendall
 import plotly.express as px
 from lib.db.queried import QUERIES as queried_firestorms
 from scipy.stats import pearsonr
+from typing import Sequence
+
+
+def log_trend_tests(tweets: Tweets, variables_to_test: Sequence[str]):
+    for variable in variables_to_test:
+        test_statistics = test_for_trend(firestorm_tweets.six_hourwise_metrics, variable)
+        print(f'\nTrend test for {variable}:\n')
+        print(test_statistics)
+        if test_statistics.p > 0.05:
+            print('No significant trend!')
+        else:
+            print('Trend significant!')
 
 
 def test_for_trend(tweet_metrics_by_hour: pd.DataFrame, attribute: str, day_period=24) -> Tuple:
@@ -44,16 +56,21 @@ if __name__ == "__main__":
     connect_to_mongo()
 
     # select firestorm
-    firestorm_meta = queried_firestorms['pinkygloves']
+    key = 'laschetLacht'
+    firestorm_meta = queried_firestorms[key]
     ####
 
-    print(f'Analyzing tweets for query "{firestorm_meta["query"]}" between {firestorm_meta["true_start_date"]} '
-          f'and {firestorm_meta["true_end_date"]}')
 
+    #for key, firestorm_meta in queried_firestorms.items():
+    print(f'Analyzing tweets for query "{firestorm_meta["query"]}" between {firestorm_meta["data_start_date"]} '
+          f'and {firestorm_meta["data_end_date"]}')
     firestorm_tweets = Tweets.from_query(firestorm_meta['query']).select_time_range(
-        firestorm_meta['true_start_date'], firestorm_meta['true_end_date']
+        firestorm_meta['data_start_date'], firestorm_meta['data_end_date']
     )
+    firestorm_tweets.plot_quantity_per_hour(title=key)
 
+
+    '''
     print(
         list(
             zip(
@@ -62,9 +79,9 @@ if __name__ == "__main__":
             )
         )
     )
+    '''
 
     '''
-    print(firestorm_tweets.six_hourwise_metrics.shape)
 
     print(
         pearsonr(
@@ -73,29 +90,11 @@ if __name__ == "__main__":
         )
     )
 
-    print(f'Firestorm has {len(firestorm_tweets)} phases and {len(firestorm_tweets.tweets)} tweets')
-    smoothed_line_plots(firestorm_tweets.six_hourwise_metrics,
-                        x='six_hour_slot', y=['total_tweets_pct', 'offensive_pct'], #, 'retweet_pct', 'laggards_pct', 'de_pct'],
-                        window_size=0).show()
-
 
     fig = px.scatter(firestorm_tweets.six_hourwise_metrics, x="six_hour_slot", y="offensive_pct", trendline="ols")
     fig.show()
 
 
-    # print('The following breakpoints were detected:')
-    # print(firestorm_tweets.breakpoints)
-
-
-    # Testing significance of trends
-    for variable in ['offensive_pct']:
-        test_statistics = test_for_trend(firestorm_tweets.six_hourwise_metrics, variable)
-        print(f'\nTrend test for {variable}:\n')
-        print(test_statistics)
-        if test_statistics.p > 0.05:
-            print('No significant trend!')
-        else:
-            print('Trend significant!')
 
     '''
 
