@@ -50,7 +50,7 @@ if __name__ == "__main__":
     print(f'Analyzing tweets for query "{firestorm_meta["query"]}" between {firestorm_meta["true_start_date"]} '
           f'and {firestorm_meta["true_end_date"]}')
 
-    firestorm_tweets = Tweets.from_hashtag_in_query(firestorm_meta['query']).select_time_range(
+    firestorm_tweets = Tweets.from_query(firestorm_meta['query']).select_time_range(
         firestorm_meta['true_start_date'], firestorm_meta['true_end_date']
     )
 

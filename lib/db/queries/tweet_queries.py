@@ -25,20 +25,21 @@ def get_tweets_for_hashtags(*hashtags: Sequence[str]) -> QuerySet:
     return Tweets.objects(entities__hashtags__tag__in=hashtags)
 
 
-def get_tweets_for_search_query(hashtag: str) -> QuerySet:
+def get_tweets_for_search_query(query: str, full_match_required: bool=False) -> QuerySet:
     """Returns all tweets that were returned for a query that contains the specified hashtag
 
-    :param hashtags: a hashtag which was queried
+    :param query: the query (or a part of the query) that was used for fetching the tweets
+    :param full_match_required: if true tweets are only returned if their query is equal to the input query, if false
+    it suffices if the input query is a part of the query used for fetching the tweet
     :return: mongoengine QuerySet that contains all tweets that were retrieved when querying for this hashtag
     """
-
-    # Remove leading # symbol if they were included in the input
-    hashtags = remove_leading_hashtag(hashtag)
-
-    results = Tweets.objects(search_params__query__icontains=hashtag)
+    if full_match_required:
+        results = Tweets.objects(search_params__query=query)
+    else:
+        results = Tweets.objects(search_params__query__icontains=query)
 
     if len(results) == 0:
-        print(f'WARNING: Your query "{hashtag}" did not return any results!')
+        print(f'WARNING: Your query "{query}" did not return any results!')
 
     return results
 

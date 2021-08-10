@@ -7,7 +7,7 @@ if __name__ == "__main__":
     connect_to_mongo()
 
     # Opt: Only using tweets from specified time range (en wave happens between 17th and 23!)
-    firestorm_tweets = TweetsInPhases.from_hashtag_in_query('pinkygloves')
+    firestorm_tweets = TweetsInPhases.from_query('pinkygloves', full_match_required=False)
 
     print(f'Before selecting the timerange, there are {len(firestorm_tweets.tweets)} in the dataset')
 

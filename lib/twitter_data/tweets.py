@@ -15,9 +15,18 @@ class Tweets:
     def __len__(self):
         return len(self.tweets)
 
+
     @classmethod
-    def from_hashtag_in_query(cls, hashtag: str):
-        firestorm_tweets_selection = loads(get_tweets_for_search_query(hashtag).to_json())
+    def from_query(cls, fetch_query: str, full_match_required:bool=True):
+        """Returns all tweets that were fetched by making use of the specified query
+
+        :param fetch_query: the fetch_query for which tweets should be returned (query originally used for fetching!)
+        :param full_match_required: if false, tweets are returned if they were fetched with fetch_query
+        if true the fetch_query must be fully equal to the query used for fetching the tweets
+        :return: all tweets who were fetched with fetch_query
+        """
+        firestorm_tweets_selection = loads(
+            get_tweets_for_search_query(fetch_query, full_match_required=full_match_required).to_json())
         return cls(pd.DataFrame.from_records(firestorm_tweets_selection))
 
 
