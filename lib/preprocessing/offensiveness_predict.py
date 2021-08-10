@@ -1,4 +1,4 @@
-from offensiveness_training import read_germeval_data, CLASS_LIST
+from lib.preprocessing.offensiveness_training import read_germeval_data, CLASS_LIST
 import pandas as pd
 import transformers
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -82,6 +82,31 @@ if __name__ == "__main__":
         '../../models/german_hatespeech_detection_finetuned'
     )
 
+    TRAIN_FILES = [
+        '../../data/offensiveness_training_data/germeval2018.test_.txt',
+        '../../data/offensiveness_training_data/germeval2018.training.txt',
+        '../../data/offensiveness_training_data/germeval2019.training_subtask1_2_korrigiert.txt'
+    ]
+
+    full_data = read_germeval_data(TRAIN_FILES, CLASS_LIST)
+
+    X = list(full_data['text'])
+    y = list(full_data['label'])
+
+    from sklearn.model_selection import train_test_split
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
+
+    test_data_df = pd.DataFrame({
+        'text': X_test,
+        'label': y_test
+    })
+
+
+    with timebudget("Evaluating model on test set"):
+        evaluate_model(model, tokenizer, test_data_df, CLASS_LIST)
+
+    '''
     tweets = read_germeval_data(['../../data/aggr_sample/sample_labeled.csv'],
                                 CLASS_LIST)
 
@@ -99,3 +124,4 @@ if __name__ == "__main__":
 
     print("\n" + str(pred_batches))
     print("\n" + str(pred_singles))
+    '''
