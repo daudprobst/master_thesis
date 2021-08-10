@@ -7,16 +7,16 @@ import plotly.graph_objects as go
 
 def smoothed_line_plots(ts_data: pd.DataFrame, x: str, y: Sequence[str], **kwargs) -> go:
     fig = go.Figure()
-
+    print(kwargs)
     # window size used for filtering
     if 'window_size' in kwargs:
-        window_size = kwargs['window_size']
+        window_size = kwargs.pop('window_size')
     else:
         window_size = 23
 
     # order of fitted polynomial
     if 'polynomial_order' in kwargs:
-        polynomial_order = kwargs['polynomial_order']
+        polynomial_order = kwargs.pop('polynomial_order')
     else:
         polynomial_order = 3
 
@@ -32,4 +32,6 @@ def smoothed_line_plots(ts_data: pd.DataFrame, x: str, y: Sequence[str], **kwarg
             text=[f'Total tweets: {row["total_tweets"]}' for name, row in ts_data.iterrows()],
             name=y_entry
         ))
+
+    fig.update_layout(**kwargs)
     return fig

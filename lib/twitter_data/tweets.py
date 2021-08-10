@@ -4,6 +4,8 @@ from datetime import datetime
 from lib.db.queries.tweet_queries import get_tweets_for_search_query
 from lib.utils.datetime_helpers import unix_ms_to_date, round_to_hour, round_to_hour_slots
 from typing import Sequence, Tuple
+from lib.graphs.line_plots import smoothed_line_plots
+
 
 class Tweets:
 
@@ -53,7 +55,7 @@ class Tweets:
         :return: tweets after start_point AND before end_point
         """
 
-        # TODO smarter solution for this tz issue
+        # TODO smarter solution for this tz issue / Which tz are the tweets stored in? Probably we should cast to UTC?
 
         if start_time.tzinfo:
             print('WARNING: Ignored tz information for selecting range of tweets')
@@ -162,3 +164,5 @@ class Tweets:
         # sort the output by time (hour)
         return output_df.sort_index()
 
+    def plot_quantity_per_hour(self, **kwargs) -> None:
+        smoothed_line_plots(self.hourwise_metrics, x='hour', y=['total_tweets'], window_size=0, **kwargs).show()
