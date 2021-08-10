@@ -2,14 +2,15 @@ import pandas as pd
 from json import loads
 from datetime import datetime
 from lib.db.queries.tweet_queries import get_tweets_for_search_query
-from lib.utils.datetime_helpers import unix_ms_to_date, round_to_hour
+from lib.utils.datetime_helpers import unix_ms_to_date, round_to_hour, round_to_hour_slots
 from typing import Sequence, Tuple
 
 class Tweets:
 
     def __init__(self, tweets: pd.DataFrame):
         self._tweets = self._preprocess_inputs(tweets)
-        self._hourwise_metrics = self._rates_per_hour()
+        self._hourwise_metrics = self.metrics_per_time_intervall('hour')
+        self._six_hourwise_metrics = self.metrics_per_time_intervall('six_hour_slot')
 
     def __len__(self):
         return len(self.tweets)
@@ -28,6 +29,10 @@ class Tweets:
     def hourwise_metrics(self):
         return self._hourwise_metrics
 
+    @property
+    def six_hourwise_metrics(self):
+        return self._six_hourwise_metrics
+
     def select_time_range(self, start_time: datetime, end_time: datetime,
                           time_variable: str = 'created_at'):
         """ returns only those tweets that lie in the specified time range
@@ -39,15 +44,13 @@ class Tweets:
         :return: tweets after start_point AND before end_point
         """
 
-        # TODO at least throw a warning if we do this
-        # remove timezone information
-
+        # TODO smarter solution for this tz issue
 
         if start_time.tzinfo:
-            print('WARNING: Ignored tz informaiton for selecting range of tweets')
+            print('WARNING: Ignored tz information for selecting range of tweets')
             start_time = start_time.replace(tzinfo=None)
         if end_time.tzinfo:
-            print('WARNING: Ignored tz informaiton for selecting range of tweets')
+            print('WARNING: Ignored tz information for selecting range of tweets')
             end_time = end_time.replace(tzinfo=None)
 
         return self.__class__(
@@ -78,6 +81,7 @@ class Tweets:
         try:
             tweets['created_at'] = tweets['created_at'].apply(lambda x: unix_ms_to_date(x['$date']))
             tweets['hour'] = tweets['created_at'].apply(lambda x: round_to_hour(x))
+            tweets['six_hour_slot'] = tweets['created_at'].apply(lambda x: round_to_hour_slots(x))
         except Exception:
             # TODO -> implement more clean: current solution is very dirty. the upper code fails if we had already
             # parased the dates before
@@ -93,8 +97,8 @@ class Tweets:
 
         return tweets
 
-    def _rates_per_hour(self, to_calculate: Sequence[Tuple[str, str, str]] = None,
-                       grouping_var: str = 'hour') -> pd.DataFrame:
+    def metrics_per_time_intervall(self, grouping_var: str = 'hour',
+                                    to_calculate: Sequence[Tuple[str, str, str]] = None) -> pd.DataFrame:
         """ Groups the tweets per hour and calculates percentages for certain values in categorical variables that
         were specified in to_calculate (e.g. ("retweet_pct", 'tweet_type', 'retweet without comment') will include the
         percentage of retweets without comment for each hour in the column 'retweet_pct')
@@ -109,7 +113,6 @@ class Tweets:
 
         if not to_calculate:
             to_calculate = [
-                ("total_tweets", None, None),
                 # ==tweet type
                 ("retweet_pct", 'tweet_type', 'retweet without comment'),
                 ("original_tweet_pct", 'tweet_type', 'original tweet'),
@@ -137,18 +140,15 @@ class Tweets:
         tweets_by_hour = self.tweets.groupby(grouping_var)
         for name, group in tweets_by_hour:
             total_length = len(group)
+            output_df.at[name, 'total_tweets'] = total_length
             for col, var_name, value in to_calculate:
-                if col == 'total_tweets':
-                    output_df.at[name, 'total_tweets'] = total_length
-                else:
-                    try:
-                        output_df.at[name, col] = group[var_name].value_counts()[value] / total_length
-                    except KeyError: # sometimes value does not exist in value_counts (0 entries)
-                        output_df.at[name, col] = 0
+                try:
+                    output_df.at[name, col] = group[var_name].value_counts()[value] / total_length
+                except KeyError: # sometimes value does not exist in value_counts (0 entries)
+                    output_df.at[name, col] = 0
 
-        if 'total_tweets' in output_df.columns:
-            # Normalizing total length (only works since data has only positive values)
-            output_df['total_tweets'] = output_df['total_tweets'] / output_df['total_tweets'].max()
+        # Normalizing total length (only works since data has only positive values)
+        output_df['total_tweets_pct'] = output_df['total_tweets'] / output_df['total_tweets'].max()
 
         # sort the output by time (hour)
         return output_df.sort_index()
