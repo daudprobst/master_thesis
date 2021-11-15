@@ -14,17 +14,21 @@ from typing import Sequence
 
 def log_trend_tests(tweets: Tweets, variables_to_test: Sequence[str]):
     for variable in variables_to_test:
-        test_statistics = test_for_trend(firestorm_tweets.six_hourwise_metrics, variable)
-        print(f'\nTrend test for {variable}:\n')
+        test_statistics = test_for_trend(
+            firestorm_tweets.six_hourwise_metrics, variable
+        )
+        print(f"\nTrend test for {variable}:\n")
         print(test_statistics)
         if test_statistics.p > 0.05:
-            print('No significant trend!')
+            print("No significant trend!")
         else:
-            print('Trend significant!')
+            print("Trend significant!")
 
 
-def test_for_trend(tweet_metrics_by_hour: pd.DataFrame, attribute: str, day_period=24) -> Tuple:
-    """ Tests for a trend in the time series
+def test_for_trend(
+    tweet_metrics_by_hour: pd.DataFrame, attribute: str, day_period=24
+) -> Tuple:
+    """Tests for a trend in the time series
 
     :param tweet_metrics_by_hour:
     :param attribute: attribute for which the trend should be tested (e.g. 'retweet_pct')
@@ -43,34 +47,36 @@ def test_for_trend(tweet_metrics_by_hour: pd.DataFrame, attribute: str, day_peri
         sen's slope function required data vector. seasonal sen's slope also has optional input period, which by the default value is 12. Both sen's slope function return only slope value.
     """
 
-    '''
+    """
             Seasonal MK Test (seasonal_test): For seasonal time series data, Hirsch, R.M., Slack, J.R. and Smith, R.A. (1982)
             proposed this test to calculate the seasonal trend.
             (https://pypi.org/project/pymannkendall/)
 
-           '''
-    return pymannkendall.seasonal_test(tweet_metrics_by_hour[attribute], period=day_period)
+           """
+    return pymannkendall.seasonal_test(
+        tweet_metrics_by_hour[attribute], period=day_period
+    )
 
 
 if __name__ == "__main__":
     connect_to_mongo()
 
     # select firestorm
-    key = 'laschetLacht'
+    key = "laschetLacht"
     firestorm_meta = queried_firestorms[key]
     ####
 
-
-    #for key, firestorm_meta in queried_firestorms.items():
-    print(f'Analyzing tweets for query "{firestorm_meta["query"]}" between {firestorm_meta["data_start_date"]} '
-          f'and {firestorm_meta["data_end_date"]}')
-    firestorm_tweets = Tweets.from_query(firestorm_meta['query']).select_time_range(
-        firestorm_meta['data_start_date'], firestorm_meta['data_end_date']
+    # for key, firestorm_meta in queried_firestorms.items():
+    print(
+        f'Analyzing tweets for query "{firestorm_meta["query"]}" between {firestorm_meta["data_start_date"]} '
+        f'and {firestorm_meta["data_end_date"]}'
+    )
+    firestorm_tweets = Tweets.from_query(firestorm_meta["query"]).select_time_range(
+        firestorm_meta["data_start_date"], firestorm_meta["data_end_date"]
     )
     firestorm_tweets.plot_quantity_per_hour(title=key)
 
-
-    '''
+    """
     print(
         list(
             zip(
@@ -79,9 +85,9 @@ if __name__ == "__main__":
             )
         )
     )
-    '''
+    """
 
-    '''
+    """
 
     print(
         pearsonr(
@@ -96,10 +102,10 @@ if __name__ == "__main__":
 
 
 
-    '''
+    """
 
     # Testing significance of trends WITHIN PHASES
-    '''
+    """
     firestorm_phases_metrics_per_hour = [phase.hourwise_metrics for phase in firestorm_tweets.phases]
         # -> significant trend for laggards_pct, no significance for retweet_pct!
 
@@ -138,4 +144,4 @@ if __name__ == "__main__":
             print(f'Significant result with p-value of {pvalue} ')
         else:
             print(f'No significant result with p-value of {pvalue} ')
-    '''
+    """

@@ -25,7 +25,9 @@ def get_tweets_for_hashtags(*hashtags: Sequence[str]) -> QuerySet:
     return Tweets.objects(entities__hashtags__tag__in=hashtags)
 
 
-def get_tweets_for_search_query(query: str, full_match_required: bool=False) -> QuerySet:
+def get_tweets_for_search_query(
+    query: str, full_match_required: bool = False
+) -> QuerySet:
     """Returns all tweets that were returned for a query that contains the specified hashtag
 
     :param query: the query (or a part of the query) that was used for fetching the tweets
@@ -45,12 +47,14 @@ def get_tweets_for_search_query(query: str, full_match_required: bool=False) -> 
 
 
 def get_tweets_for_search_query_sorted_by_time(hashtag: str) -> List[dict]:
-    tweets_query_set_sorted = get_tweets_for_search_query(hashtag).order_by('created_at').only(
-        'created_at', 'user_type', 'tweet_type', 'contains_url', 'lang'
+    tweets_query_set_sorted = (
+        get_tweets_for_search_query(hashtag)
+        .order_by("created_at")
+        .only("created_at", "user_type", "tweet_type", "contains_url", "lang")
     )
     return loads(tweets_query_set_sorted.to_json())
 
 
 if __name__ == "__main__":
     connect_to_mongo()
-    print(len(get_tweets_for_search_query('#pinkyglove')))
+    print(len(get_tweets_for_search_query("#pinkyglove")))

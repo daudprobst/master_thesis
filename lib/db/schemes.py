@@ -29,7 +29,7 @@ class Tweets(Document):
     id = LongField(primary_key=True)
     text = StringField(required=True)
     created_at = DateTimeField(required=True)
-    author_id = ReferenceField('Users')
+    author_id = ReferenceField("Users")
     conversation_id = LongField()
     possibly_sensitive = BooleanField()
     withheld = BooleanField(default=False)
@@ -37,13 +37,15 @@ class Tweets(Document):
     in_reply_to_user_id = StringField()
     source = StringField()
     lang = StringField()
-    public_metrics = EmbeddedDocumentField('TweetPublicMetrics')
+    public_metrics = EmbeddedDocumentField("TweetPublicMetrics")
     context_annotations = ListField(DictField())
     entities = DictField()
     attachments = DictField()  # make more specific?
     geo = DynamicField()
-    referenced_tweets = ListField(EmbeddedDocumentField('TweetReference'))
-    media = EmbeddedDocumentField('TwitterMedia')  # we store media directly in the tweet
+    referenced_tweets = ListField(EmbeddedDocumentField("TweetReference"))
+    media = EmbeddedDocumentField(
+        "TwitterMedia"
+    )  # we store media directly in the tweet
     search_params = DictField()
     tweet_type = StringField()
     contains_url = BooleanField()

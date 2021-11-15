@@ -9,4 +9,4 @@ def remove_leading_hashtag(hashtags: Sequence[str]) -> Sequence[str]:
     :return: list of hashtags without hashtag symbol
     """
 
-    return [re.sub('#', '', hashtag, 1) for hashtag in hashtags]
+    return [re.sub("#", "", hashtag, 1) for hashtag in hashtags]

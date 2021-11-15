@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Sequence
 
 
-def auth(bearer_token: str = 'TWT_BEARER_TOKEN') -> str:
+def auth(bearer_token: str = "TWT_BEARER_TOKEN") -> str:
     """Returns the bearer token specified in OS: To set your environment variables in your
     terminal run the following line: export 'TWT_BEARER_TOKEN'='<your_bearer_token>'
 
@@ -17,7 +17,9 @@ def auth(bearer_token: str = 'TWT_BEARER_TOKEN') -> str:
     try:
         return os.environ.get(bearer_token)
     except Exception as e:
-        raise Exception(f'Failed to load authentification {bearer_token} from environment variables: {e}')
+        raise Exception(
+            f"Failed to load authentification {bearer_token} from environment variables: {e}"
+        )
 
 
 def create_headers(bearer_token: str = None) -> dict:
@@ -33,10 +35,16 @@ def create_headers(bearer_token: str = None) -> dict:
     return headers
 
 
-def create_params(query: str, max_results: int = 100, fields: Sequence[str] = None,
-                  media_fields: Sequence[str] = None, user_fields: Sequence[str] = None,
-                  start_time: datetime = None, end_time: datetime = None,
-                  next_token: str = None) -> dict:
+def create_params(
+    query: str,
+    max_results: int = 100,
+    fields: Sequence[str] = None,
+    media_fields: Sequence[str] = None,
+    user_fields: Sequence[str] = None,
+    start_time: datetime = None,
+    end_time: datetime = None,
+    next_token: str = None,
+) -> dict:
     """Create a params dictionary that can be passed to make_request. If none is specified for any
     of the arguments, the Twitter API default will be used.
     :param query: query to be searched
@@ -52,41 +60,45 @@ def create_params(query: str, max_results: int = 100, fields: Sequence[str] = No
     :returns: parameters for making the API request as a dictionary
     """
 
-    params = {'query': query}
+    params = {"query": query}
 
     if not fields:
-        fields = ['id, text']
+        fields = ["id, text"]
 
     expansions = []
     if media_fields:
-        if 'attachments' not in fields:
-            fields.append('attachments')  # we need the attachments.media id for matching
-        expansions.append('attachments.media_keys')
-        params['media.fields'] = ','.join(media_fields)
+        if "attachments" not in fields:
+            fields.append(
+                "attachments"
+            )  # we need the attachments.media id for matching
+        expansions.append("attachments.media_keys")
+        params["media.fields"] = ",".join(media_fields)
 
     if user_fields:
-        if 'author_id' not in fields:
-            fields.append('author_id')  # we need author id for matching
-        expansions.append('author_id')
-        params['user.fields'] = ','.join(user_fields)
+        if "author_id" not in fields:
+            fields.append("author_id")  # we need author id for matching
+        expansions.append("author_id")
+        params["user.fields"] = ",".join(user_fields)
 
     if expansions:
-        params['expansions'] = ','.join(expansions)
+        params["expansions"] = ",".join(expansions)
 
-    params['tweet.fields'] = ','.join(fields)  # TWT API expects comma separated list
-    params['max_results'] = max_results
+    params["tweet.fields"] = ",".join(fields)  # TWT API expects comma separated list
+    params["max_results"] = max_results
 
     if start_time:
-        params['start_time'] = start_time.isoformat()
+        params["start_time"] = start_time.isoformat()
     if end_time:
-        params['end_time'] = end_time.isoformat()
+        params["end_time"] = end_time.isoformat()
     if next_token:
-        params['next_token'] = next_token
+        params["next_token"] = next_token
 
     return params
 
 
-def make_request(base_url: str, params: dict, headers: dict = None, request_type: str = 'GET') -> TwitterSearchResponse:
+def make_request(
+    base_url: str, params: dict, headers: dict = None, request_type: str = "GET"
+) -> TwitterSearchResponse:
     """Executes the request specified through the arguments and returns the response as JSON
 
     :param base_url: base_url of endpoint, e.g. https://api.twitter.com/2/tweets/search/recent

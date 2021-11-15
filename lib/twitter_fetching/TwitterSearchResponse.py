@@ -20,35 +20,35 @@ class TwitterSearchResponse:
     @property
     def meta(self) -> Union[Dict, None]:
         try:
-            return self._data['meta']
+            return self._data["meta"]
         except KeyError:
             return None
 
     @property
     def next_token(self) -> Union[str, None]:
         try:
-            return self.meta['next_token']
+            return self.meta["next_token"]
         except KeyError:
             return None
 
     @property
     def media(self) -> Union[List[Dict], None]:
         try:
-            return self._data['includes']['media']
+            return self._data["includes"]["media"]
         except KeyError:
             return None
 
     @property
     def tweets(self) -> Union[List[Dict], None]:
         try:
-            return self._data['data']
+            return self._data["data"]
         except KeyError:
             return None
 
     @property
     def users(self) -> Union[List[Dict], None]:
         try:
-            return self._data['includes']['users']
+            return self._data["includes"]["users"]
         except KeyError:
             print("No users found!")
             return None
@@ -59,21 +59,26 @@ class TwitterSearchResponse:
 
         for media in self.media:
             for tweet in self.tweets:
-                if 'attachments' in tweet and 'media_keys' in tweet['attachments']:
-                    if media['media_key'] in tweet['attachments']['media_keys']:
-                        tweet['media'] = media
+                if "attachments" in tweet and "media_keys" in tweet["attachments"]:
+                    if media["media_key"] in tweet["attachments"]["media_keys"]:
+                        tweet["media"] = media
 
         return self.tweets
 
     def write_to_db(self) -> None:
         for entry in self.attach_media_to_tweets():
-            entry['search_params'] = self.search_params
-            mongo_db.Tweets.from_json(dumps(entry), True).save()  # TODO force_insert=True?
+            entry["search_params"] = self.search_params
+            mongo_db.Tweets.from_json(
+                dumps(entry), True
+            ).save()  # TODO force_insert=True?
 
         for user in self.users:
             mongo_db.Users.from_json(dumps(user), True).save()  # updates existing users
 
-    def write_to_csv(self, filename: str = '/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms.csv') -> None:
+    def write_to_csv(
+        self,
+        filename: str = "/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms.csv",
+    ) -> None:
         """
         Writes Tweet data (without user includes) to a specified csv file
         :param filename: full filepath specified for the .csv
@@ -82,24 +87,26 @@ class TwitterSearchResponse:
         # ordered dict work in Python 3.7+
         response_data_sorted = [dict(sorted(row.items())) for row in self.tweets]
         if not os.path.exists(filename):
-            print(f'File with filepath {filename} was not found. Reinitializing with empty file and headers.')
-            with open(filename, 'w', newline='') as csvfile:
+            print(
+                f"File with filepath {filename} was not found. Reinitializing with empty file and headers."
+            )
+            with open(filename, "w", newline="") as csvfile:
                 spamwriter = csv.writer(csvfile)
                 spamwriter.writerow(response_data_sorted[0])
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, "a", newline="") as csvfile:
             for row in response_data_sorted:
                 spamwriter = csv.writer(csvfile)
                 spamwriter.writerow(row.values())
 
     def buffer_missing_fields(self) -> Sequence[Dict]:
         """Buffers requested fields for which TwitterAPI returned no answer (e.g. often the case for 'withheld'
-          for with an empty string. This happens in place for the self.tweets of the instance"""
+        for with an empty string. This happens in place for the self.tweets of the instance"""
         for tweet in self.tweets:
-            for field in self._search_params['tweet.fields'].split(','):
+            for field in self._search_params["tweet.fields"].split(","):
                 if field not in tweet:
-                    tweet[field] = ''
+                    tweet[field] = ""
             # We manually add media with attach_media_to_tweets()
-            if 'media' not in tweet:
-                tweet['media'] = ''
+            if "media" not in tweet:
+                tweet["media"] = ""
         return self.tweets
