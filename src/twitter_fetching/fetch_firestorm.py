@@ -1,7 +1,7 @@
-from lib.db.connection import connect_to_mongo
-from lib.twitter_fetching.requests_base import create_params
-from lib.twitter_fetching.recent_search import recent_search, fetch_report_to_csv
-from lib.utils.datetime_helpers import day_wrapping_datetimes
+from src.db.connection import connect_to_mongo
+from src.twitter_fetching.requests_base import create_params
+from src.twitter_fetching.recent_search import recent_search, fetch_report_to_csv
+from src.utils.datetime_helpers import day_wrapping_datetimes
 
 from datetime import timedelta, timezone, datetime
 

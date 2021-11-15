@@ -1,11 +1,11 @@
 import json
-import lib.db.schemes as mongo_db
-from lib.db.connection import connect_to_mongo
-from lib.discourse_style_metrics.add_attributes_to_entries import (
+import src.db.schemes as mongo_db
+from src.db.connection import connect_to_mongo
+from src.discourse_style_metrics.add_attributes_to_entries import (
     add_attributes_to_tweets,
 )
 from typing import List, Dict, Tuple
-from lib.db.queries.tweet_queries import get_tweets_for_search_query
+from src.db.queries.tweet_queries import get_tweets_for_search_query
 
 
 def file_reader_generator(filename: str, encoding=None):

@@ -1,7 +1,7 @@
-from lib.twitter_data.tweets import Tweets
-from lib.db.queried import QUERIES
-from lib.db.connection import connect_to_mongo
-from lib.utils.conversions import float_to_pct
+from src.twitter_data.tweets import Tweets
+from src.db.queried import QUERIES
+from src.db.connection import connect_to_mongo
+from src.utils.conversions import float_to_pct
 from datetime import datetime
 import csv
 from typing import List

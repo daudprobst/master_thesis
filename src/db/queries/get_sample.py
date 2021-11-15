@@ -1,7 +1,7 @@
-from lib.db.schemes import Tweets
-from lib.db.connection import connect_to_mongo
-from lib.db.helpers import query_set_to_df
-from pathlib import Path
+from src.db.schemes import Tweets
+from src.db.connection import connect_to_mongo
+from src.db.helpers import query_set_to_df
+from pathsrc import Path
 
 
 def get_random_oids(collection, sample_size):

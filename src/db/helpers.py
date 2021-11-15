@@ -1,7 +1,15 @@
-from lib.db.queries.tweet_queries import get_tweets_for_search_query
-from lib.db.connection import connect_to_mongo
-from lib.db.schemes import Tweets
+import json
 from time import sleep
+
+import pandas as pd
+from src.db.connection import connect_to_mongo
+from src.db.queries.tweet_queries import get_tweets_for_search_query
+from src.db.schemes import Tweets
+from mongoengine import QuerySet
+
+
+def query_set_to_df(input_data: QuerySet) -> pd.DataFrame:
+    return pd.DataFrame.from_records(json.loads(input_data.to_json()))
 
 
 def update_search_query(old_query: str, full_new_query: str) -> None:

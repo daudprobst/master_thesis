@@ -1,5 +1,5 @@
-from lib.twitter_fetching.requests_base import make_request
-from lib.db.schemes import *
+from src.twitter_fetching.requests_base import make_request
+from src.db.schemes import *
 
 from time import sleep
 import os

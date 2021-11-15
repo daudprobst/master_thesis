@@ -1,4 +1,4 @@
-from lib.discourse_style_metrics.offensiveness_training import (
+from src.discourse_style_metrics.offensiveness_training import (
     read_germeval_data,
     CLASS_LIST,
 )

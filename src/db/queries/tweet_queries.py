@@ -1,6 +1,6 @@
-from lib.utils.regex_helpers import remove_leading_hashtag
-from lib.db.schemes import Tweets
-from lib.db.connection import connect_to_mongo
+from src.utils.regex_helpers import remove_leading_hashtag
+from src.db.schemes import Tweets
+from src.db.connection import connect_to_mongo
 from json import loads
 
 from mongoengine import QuerySet

@@ -1,7 +1,7 @@
-from lib.db.connection import connect_to_mongo
+from src.db.connection import connect_to_mongo
 from datetime import datetime
-from lib.graphs.pie_plot import pie_plot_multiplot
-from lib.twitter_data.tweets_in_phases import TweetsInPhases
+from src.graphs.pie_plot import pie_plot_multiplot
+from src.twitter_data.tweets_in_phases import TweetsInPhases
 
 if __name__ == "__main__":
     connect_to_mongo()

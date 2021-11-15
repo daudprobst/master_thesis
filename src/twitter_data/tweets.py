@@ -1,14 +1,14 @@
 import pandas as pd
 from json import loads
 from datetime import datetime
-from lib.db.queries.tweet_queries import get_tweets_for_search_query
-from lib.utils.datetime_helpers import (
+from src.db.queries.tweet_queries import get_tweets_for_search_query
+from src.utils.datetime_helpers import (
     unix_ms_to_date,
     round_to_hour,
     round_to_hour_slots,
 )
 from typing import Sequence, Tuple
-from lib.graphs.line_plots import smoothed_line_plots
+from src.graphs.line_plots import smoothed_line_plots
 
 
 class Tweets:

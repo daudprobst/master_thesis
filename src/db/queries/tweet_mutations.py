@@ -1,4 +1,4 @@
-from lib.db.schemes import Tweets
+from src.db.schemes import Tweets
 
 
 def add_attribute_to_tweet(tweet: Tweets, attribute: str, value) -> None:

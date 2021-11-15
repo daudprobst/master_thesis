@@ -1,13 +1,13 @@
-from lib.twitter_data.tweets_in_phases import TweetsInPhases
-from lib.twitter_data.tweets import Tweets
-from lib.db.connection import connect_to_mongo
+from src.twitter_data.tweets_in_phases import TweetsInPhases
+from src.twitter_data.tweets import Tweets
+from src.db.connection import connect_to_mongo
 import pandas as pd
 from datetime import datetime
-from lib.graphs.line_plots import smoothed_line_plots
+from src.graphs.line_plots import smoothed_line_plots
 from typing import Tuple
 import pymannkendall
 import plotly.express as px
-from lib.db.queried import QUERIES as queried_firestorms
+from src.db.queried import QUERIES as queried_firestorms
 from scipy.stats import pearsonr
 from typing import Sequence
 

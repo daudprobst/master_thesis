@@ -1,4 +1,4 @@
-import lib.db.schemes as mongo_db
+import src.db.schemes as mongo_db
 
 import csv
 import os
