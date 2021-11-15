@@ -21,6 +21,8 @@ from timebudget import timebudget
 from collections import Counter
 from typing import List, Tuple
 
+import os
+
 
 def load_model(
     model_filename: str,
@@ -30,6 +32,7 @@ def load_model(
     :param model_filename: filepath to folder in which the model
     :return: A tuple of (1) the model loaded from the file path and (2) the respective tokenizer
     """
+    model_filename = os.getcwd() + model_filename
     model = AutoModelForSequenceClassification.from_pretrained(model_filename)
     tokenizer = AutoTokenizer.from_pretrained(model_filename)
     return model, tokenizer
@@ -100,7 +103,7 @@ def evaluate_model(
 
 
 if __name__ == "__main__":
-    model, tokenizer = load_model("../../models/german_hatespeech_detection_finetuned")
+    model, tokenizer = load_model("models/german_hatespeech_detection_finetuned")
 
     TRAIN_FILES = [
         "../../data/offensiveness_training_data/germeval2018.test_.txt",

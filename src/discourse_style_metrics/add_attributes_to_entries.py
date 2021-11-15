@@ -27,9 +27,7 @@ def add_attributes_to_tweets(
         user_groups = calculate_user_groups(tweets)
 
     if "is_offensive" in attributes:
-        model, tokenizer = load_model(
-            "../../models/german_hatespeech_detection_finetuned"
-        )
+        model, tokenizer = load_model("/models/german_hatespeech_detection_finetuned")
 
     for i, tweet in enumerate(tweets):
         tweet_dict = loads(tweet.to_json())
