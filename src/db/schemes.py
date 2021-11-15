@@ -1,5 +1,6 @@
-from mongoengine import *
 from datetime import datetime
+
+from mongoengine import *
 
 
 class TweetReference(EmbeddedDocument):

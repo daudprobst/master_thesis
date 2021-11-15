@@ -1,10 +1,10 @@
-from src.twitter_fetching.requests_base import make_request
-from src.db.schemes import *
-
-from time import sleep
-import os
 import csv
+import os
+from time import sleep
 from typing import Dict
+
+from src.db.schemes import *
+from src.twitter_fetching.requests_base import make_request
 
 RECENT_SEARCH_URL = "https://api.twitter.com/2/tweets/search/recent"
 

@@ -1,8 +1,9 @@
+from typing import Sequence
+
 import pandas as pd
 import plotly.express as px
-from typing import Sequence
-from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 def pie_plot(data: pd.DataFrame, grouping_var: str, **kwargs) -> any:

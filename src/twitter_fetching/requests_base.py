@@ -1,9 +1,10 @@
-from src.twitter_fetching.TwitterSearchResponse import TwitterSearchResponse
-
-import requests
 import os
 from datetime import datetime
 from typing import Sequence
+
+import requests
+
+from src.twitter_fetching.TwitterSearchResponse import TwitterSearchResponse
 
 
 def auth(bearer_token: str = "TWT_BEARER_TOKEN") -> str:

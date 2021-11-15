@@ -1,21 +1,21 @@
-import torch
 import os
 import sys
-from torch.utils.data import Dataset, DataLoader
-from tqdm import tqdm
 from collections import namedtuple
+from typing import List
 
 import pandas as pd
+import torch
+
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader, Dataset
+from tqdm import tqdm
 from transformers import (
+    AdamW,
     AutoModelForSequenceClassification,
     AutoTokenizer,
-    AdamW,
     get_linear_schedule_with_warmup,
 )
-
-from typing import List
 
 CLASS_LIST = ["OFFENSE", "OTHER"]
 

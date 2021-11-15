@@ -1,7 +1,9 @@
-from src.twitter_data.tweets import Tweets
-from typing import List
-import ruptures as rpt
 from datetime import datetime
+from typing import List
+
+import ruptures as rpt
+
+from src.twitter_data.tweets import Tweets
 
 
 class TweetsInPhases(Tweets):

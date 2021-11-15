@@ -1,10 +1,9 @@
+from datetime import datetime, timedelta, timezone
+
 from src.db.connection import connect_to_mongo
+from src.twitter_fetching.recent_search import fetch_report_to_csv, recent_search
 from src.twitter_fetching.requests_base import create_params
-from src.twitter_fetching.recent_search import recent_search, fetch_report_to_csv
 from src.utils.datetime_helpers import day_wrapping_datetimes
-
-from datetime import timedelta, timezone, datetime
-
 
 if __name__ == "__main__":
     connect_to_mongo()

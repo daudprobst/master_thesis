@@ -1,9 +1,14 @@
-from src.discourse_style_metrics.offensiveness_training import (
-    read_germeval_data,
-    CLASS_LIST,
-)
+import os
+from collections import Counter
+from typing import List, Tuple
+
 import pandas as pd
+import torch
 import transformers
+from sklearn.metrics import classification_report, precision_recall_fscore_support
+from timebudget import timebudget
+from torch.utils.data import DataLoader
+from tqdm import tqdm
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from transformers.models.distilbert.modeling_distilbert import (
     DistilBertForSequenceClassification,
@@ -11,17 +16,11 @@ from transformers.models.distilbert.modeling_distilbert import (
 from transformers.models.distilbert.tokenization_distilbert_fast import (
     DistilBertTokenizerFast,
 )
-import torch
-from torch.utils.data import DataLoader
-from tqdm import tqdm
-from sklearn.metrics import classification_report, precision_recall_fscore_support
 
-from timebudget import timebudget
-
-from collections import Counter
-from typing import List, Tuple
-
-import os
+from src.discourse_style_metrics.offensiveness_training import (
+    CLASS_LIST,
+    read_germeval_data,
+)
 
 
 def load_model(

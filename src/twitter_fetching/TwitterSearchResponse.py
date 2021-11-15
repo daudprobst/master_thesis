@@ -1,9 +1,9 @@
-import src.db.schemes as mongo_db
-
 import csv
 import os
 from json import dumps
-from typing import Sequence, Dict, List, Union
+from typing import Dict, List, Sequence, Union
+
+import src.db.schemes as mongo_db
 
 
 class TwitterSearchResponse:

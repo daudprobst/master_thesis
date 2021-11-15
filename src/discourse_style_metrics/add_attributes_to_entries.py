@@ -1,23 +1,22 @@
+from json import loads
+from typing import Dict, List, Tuple
+
 import pandas as pd
 from mongoengine import QuerySet
-from json import loads
-
 from timebudget import timebudget
 
-from src.db.queries.tweet_queries import get_tweets_for_search_query, get_tweet_for_id
 from src.db.connection import connect_to_mongo
-from src.db.queries.tweet_mutations import add_attribute_to_tweet
 from src.db.helpers import query_set_to_df
+from src.db.queried import QUERIES
+from src.db.queries.tweet_mutations import add_attribute_to_tweet
+from src.db.queries.tweet_queries import get_tweet_for_id, get_tweets_for_search_query
 from src.discourse_style_metrics.discourse_stlye_metrics import (
     contains_url,
-    user_type,
     tweet_type,
+    user_type,
 )
-from src.discourse_style_metrics.offensiveness_predict import predict_single, load_model
+from src.discourse_style_metrics.offensiveness_predict import load_model, predict_single
 from src.discourse_style_metrics.offensiveness_training import CLASS_LIST
-from src.db.queried import QUERIES
-
-from typing import List, Dict, Tuple
 
 
 def add_attributes_to_tweets(

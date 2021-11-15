@@ -1,10 +1,10 @@
-from src.utils.regex_helpers import remove_leading_hashtag
-from src.db.schemes import Tweets
-from src.db.connection import connect_to_mongo
 from json import loads
+from typing import List, Sequence
 
 from mongoengine import QuerySet
-from typing import Sequence, List
+from src.db.connection import connect_to_mongo
+from src.db.schemes import Tweets
+from src.utils.regex_helpers import remove_leading_hashtag
 
 
 def get_tweet_for_id(tweet_id) -> QuerySet:
