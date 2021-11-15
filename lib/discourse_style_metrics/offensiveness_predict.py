@@ -1,4 +1,4 @@
-from lib.preprocessing.offensiveness_training import read_germeval_data, CLASS_LIST
+from lib.discourse_style_metrics.offensiveness_training import read_germeval_data, CLASS_LIST
 import pandas as pd
 import transformers
 from transformers import AutoModelForSequenceClassification, AutoTokenizer

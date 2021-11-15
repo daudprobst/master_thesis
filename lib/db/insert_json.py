@@ -1,7 +1,7 @@
 import json
 import lib.db.schemes as mongo_db
 from lib.db.connection import connect_to_mongo
-from lib.preprocessing.add_attributes_to_entries import add_attributes_to_tweets
+from lib.discourse_style_metrics.add_attributes_to_entries import add_attributes_to_tweets
 from typing import List, Dict, Tuple
 from lib.db.queries.tweet_queries import get_tweets_for_search_query
 
@@ -67,8 +67,8 @@ if __name__ == '__main__':
 
 
     ## CONFIGURE THESE TWO
-    insert_filename = 'laschetLacht.json'
-    query = '#Laschetlacht OR #LaschetRuecktritt OR #LautGegenLaschet OR conversation_id:1416449185172369411'
+    insert_filename = 'helmeLookLikeShitFix.json'
+    query = '#HelmeRettenLeben OR #lookslikeshit OR #saveslifes OR conversation_id:1108842805089177615'
     #######
 
 

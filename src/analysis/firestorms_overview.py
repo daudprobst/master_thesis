@@ -53,6 +53,7 @@ def get_firestorms_metadata(query_dict: dict) -> dict:
 
 
 if __name__ == "__main__":
+
     connect_to_mongo()
     with open('/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms_quantities.csv', 'w') as f:
         writer = csv.writer(f)
@@ -61,14 +62,12 @@ if __name__ == "__main__":
             print([key] + quantities)
             writer.writerow([key] + quantities)
 
-
-
     '''
     connect_to_mongo()
     with open('/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms_overview.csv', 'w') as f:
         writer = csv.writer(f)
-        # just querying a small firestorm to write the headers
-        writer.writerow(get_firestorms_metadata(QUERIES['helmeLookLikeShit']))
+        # just querying a random firestorm to write the headers
+        writer.writerow(get_firestorms_metadata(list(QUERIES.values())[0]))
         # loading the actual values
         for key, query_dict in QUERIES.items():
             print(f'Processing {key}')
@@ -76,4 +75,3 @@ if __name__ == "__main__":
             print(firestorm_summary)
             writer.writerow(firestorm_summary.values())
     '''
-

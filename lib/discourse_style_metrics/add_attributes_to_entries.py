@@ -8,11 +8,10 @@ from lib.db.queries.tweet_queries import get_tweets_for_search_query, get_tweet_
 from lib.db.connection import connect_to_mongo
 from lib.db.queries.tweet_mutations import add_attribute_to_tweet
 from lib.db.helpers import query_set_to_df
-from lib.preprocessing.tweet_type import tweet_type
-from lib.preprocessing.misc_attribute_helpers import contains_url
-from lib.preprocessing.user_type import user_type
-from lib.preprocessing.offensiveness_predict import predict_single, load_model
-from lib.preprocessing.offensiveness_training import CLASS_LIST
+from lib.discourse_style_metrics.discourse_stlye_metrics import contains_url, user_type, tweet_type
+from lib.discourse_style_metrics.offensiveness_predict import predict_single, load_model
+from lib.discourse_style_metrics.offensiveness_training import CLASS_LIST
+from lib.db.queried import QUERIES
 
 from typing import List, Dict, Tuple
 
@@ -103,7 +102,7 @@ def determine_offensiveness(tweet: dict, model, tokenizer):
 
 if __name__ == "__main__":
     connect_to_mongo()
-    query_set = get_tweets_for_search_query('conversation_id:1206182673888219136')
+    query_set = get_tweets_for_search_query(QUERIES['pinkygloves']['query'])
 
     print(f'Starting to calculate offensiveness for {len(query_set)} tweets')
 

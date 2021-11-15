@@ -14,14 +14,14 @@ QUERIES = {
     'amthor': {
         'query': '#amthor OR #amthorgate OR #AmthorRuecktritt',
         'data_start_date': day_wrapping_datetimes(datetime.strptime("2020-06-5", '%Y-%m-%d'))[0],
-        'data_end_date': day_wrapping_datetimes(datetime.strptime("2020-06-22", '%Y-%m-%d'))[1],
+        'data_end_date': day_wrapping_datetimes(datetime.strptime("2020-06-30", '%Y-%m-%d'))[1],
         'true_start_date': day_wrapping_datetimes(datetime.strptime("2020-06-12", '%Y-%m-%d'))[0],
         'true_end_date': None
     },
     'spahnruecktritt': {
         'query': '#spahnruecktritt OR #spahnruecktrittjetzt',
         'data_start_date': day_wrapping_datetimes(datetime.strptime("2021-05-28", '%Y-%m-%d'))[0],
-        'data_end_date': day_wrapping_datetimes(datetime.strptime("2021-06-08", '%Y-%m-%d'))[1],
+        'data_end_date': day_wrapping_datetimes(datetime.strptime("2021-06-20", '%Y-%m-%d'))[1],
         'true_start_date': day_wrapping_datetimes(datetime.strptime("2021-06-04", '%Y-%m-%d'))[0],
         'true_end_date': day_wrapping_datetimes(datetime.strptime("2021-06-06", '%Y-%m-%d'))[1],
     },
@@ -54,7 +54,6 @@ QUERIES = {
         'true_start_date': day_wrapping_datetimes(datetime.strptime("2019-12-28", '%Y-%m-%d'))[0],
         'true_end_date': day_wrapping_datetimes(datetime.strptime("2020-01-01", '%Y-%m-%d'))[1]
     },
-    '''
     'helmeLookLikeShit': {
         'query': '#HelmeRettenLeben OR #lookslikeshit OR #saveslifes OR conversation_id:1108842805089177615',
         'data_start_date': day_wrapping_datetimes(datetime.strptime("2019-03-14", '%Y-%m-%d'))[0],
@@ -62,7 +61,6 @@ QUERIES = {
         'true_start_date': None,
         'true_end_date': None
     },
-    '''
     'studentinnenfutter': {
         'query': '#Studentinnenfutter OR Studierendenfutter OR conversation_id:1413204084694437888',
         'data_start_date': day_wrapping_datetimes(datetime.strptime("2021-07-01", '%Y-%m-%d'))[0],

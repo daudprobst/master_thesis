@@ -31,8 +31,6 @@ if __name__ == "__main__":
     filtered_sample = sample_df.head(300)
     print(len(filtered_sample))
 
-    print(len(filtered_sample.tweet_type))
-    print(filtered_sample.tweet_type)
 
     from sklearn.utils import shuffle
     # filtered_sample = shuffle(filtered_sample)
