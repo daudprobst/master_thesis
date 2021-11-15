@@ -76,8 +76,7 @@ class Tweets:
 
         return self.__class__(
             self.tweets[
-                (self.tweets[time_variable] >= start_time)
-                & (self.tweets[time_variable] < end_time)
+                (self.tweets[time_variable] >= start_time) & (self.tweets[time_variable] < end_time)
             ]
         )
 
@@ -91,8 +90,7 @@ class Tweets:
 
         return Tweets(
             self.tweets[
-                (self.tweets[time_variable] >= start_time)
-                & (self.tweets[time_variable] < end_time)
+                (self.tweets[time_variable] >= start_time) & (self.tweets[time_variable] < end_time)
             ]
         )
 

@@ -1,7 +1,11 @@
-from src.db.connection import connect_to_mongo
 from datetime import datetime
-from src.graphs.pie_plot import pie_plot_multiplot
+
+# from tslearn.clustering import TimeSeriesKMeans
+# from tslearn.utils import to_time_series
+
+from src.db.connection import connect_to_mongo
 from src.twitter_data.tweets_in_phases import TweetsInPhases
+
 
 if __name__ == "__main__":
     connect_to_mongo()
@@ -24,14 +28,11 @@ if __name__ == "__main__":
         f"After selecting the timerange, there are {len(firestorm_tweets.tweets)} in the dataset"
     )
 
-    from tslearn.clustering import TimeSeriesKMeans
-    from tslearn.utils import to_time_series
+    # ts_hourwise = to_time_series(firestorm_tweets.hourwise_metrics["retweet_pct"])
+    # print(ts_hourwise.shape)
 
-    ts_hourwise = to_time_series(firestorm_tweets.hourwise_metrics["retweet_pct"])
-    print(ts_hourwise.shape)
-
-    km = TimeSeriesKMeans(n_clusters=3, metric="dtw")
-    res = km.fit(ts_hourwise)
+    # km = TimeSeriesKMeans(n_clusters=3, metric="dtw")
+    # res = km.fit(ts_hourwise)
 
     # phases_tweets = [phase.tweets for phase in firestorm_tweets.phases]
     # Plotting!

@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     BASE_URL = "/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms/"
 
-    ## CONFIGURE THESE TWO
+    # CONFIGURE THESE TWO
     insert_filename = "helmeLookLikeShitFix.json"
     query = "#HelmeRettenLeben OR #lookslikeshit OR #saveslifes OR conversation_id:1108842805089177615"
     #######

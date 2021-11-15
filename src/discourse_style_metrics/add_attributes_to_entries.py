@@ -1,7 +1,6 @@
 from json import loads
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
-import pandas as pd
 from mongoengine import QuerySet
 from timebudget import timebudget
 
@@ -71,14 +70,12 @@ def calculate_user_groups(tweets: QuerySet) -> Dict:
         ),
         "active_users": list(
             firestorms_user_activity_counts.iloc[
-                len(firestorms_user_activity_counts)
-                // 100 : len(firestorms_user_activity_counts)
-                // 10
+                len(firestorms_user_activity_counts) // 100: len(firestorms_user_activity_counts) // 10
             ]["author_id"]
         ),
         "lurking_users": list(
             firestorms_user_activity_counts.iloc[
-                len(firestorms_user_activity_counts) // 10 :
+                len(firestorms_user_activity_counts) // 10:
             ]["author_id"]
         ),
     }
@@ -92,7 +89,7 @@ def calculate_user_groups(tweets: QuerySet) -> Dict:
 
 
 def determine_offensiveness(tweet: dict, model, tokenizer):
-    if not "tweet_type" in tweet:
+    if "tweet_type" not in tweet:
         raise Exception(
             "The tweet does not have a tweet_type. Tweet type must be calculated for"
             "tweets before making a prediction for their offensiveness."

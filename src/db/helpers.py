@@ -6,7 +6,6 @@ from mongoengine import QuerySet
 
 from src.db.connection import connect_to_mongo
 from src.db.queries.tweet_queries import get_tweets_for_search_query
-from src.db.schemes import Tweets
 
 
 def query_set_to_df(input_data: QuerySet) -> pd.DataFrame:

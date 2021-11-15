@@ -1,15 +1,11 @@
-from src.twitter_data.tweets_in_phases import TweetsInPhases
-from src.twitter_data.tweets import Tweets
-from src.db.connection import connect_to_mongo
+from typing import Sequence, Tuple
+
 import pandas as pd
-from datetime import datetime
-from src.graphs.line_plots import smoothed_line_plots
-from typing import Tuple
 import pymannkendall
-import plotly.express as px
+
+from src.db.connection import connect_to_mongo
 from src.db.queried import QUERIES as queried_firestorms
-from scipy.stats import pearsonr
-from typing import Sequence
+from src.twitter_data.tweets import Tweets
 
 
 def log_trend_tests(tweets: Tweets, variables_to_test: Sequence[str]):
