@@ -70,12 +70,14 @@ def calculate_user_groups(tweets: QuerySet) -> Dict:
         ),
         "active_users": list(
             firestorms_user_activity_counts.iloc[
-                len(firestorms_user_activity_counts) // 100: len(firestorms_user_activity_counts) // 10
+                len(firestorms_user_activity_counts)
+                // 100 : len(firestorms_user_activity_counts)
+                // 10
             ]["author_id"]
         ),
         "lurking_users": list(
             firestorms_user_activity_counts.iloc[
-                len(firestorms_user_activity_counts) // 10:
+                len(firestorms_user_activity_counts) // 10 :
             ]["author_id"]
         ),
     }

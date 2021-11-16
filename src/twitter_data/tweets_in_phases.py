@@ -65,7 +65,9 @@ class TweetsInPhases(Tweets):
 
         # Add one breakpoints all the way in the beginning and one all the way in the end
         breakpoints_wrapped = (
-            [self.tweets["hour"].min().to_pydatetime()] + breakpoints + [self.tweets["hour"].max().to_pydatetime()]
+            [self.tweets["hour"].min().to_pydatetime()]
+            + breakpoints
+            + [self.tweets["hour"].max().to_pydatetime()]
         )
 
         return [

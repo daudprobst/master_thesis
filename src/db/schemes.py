@@ -1,6 +1,20 @@
 from datetime import datetime
 
-from mongoengine import *
+from mongoengine import (
+    Document,
+    EmbeddedDocument,
+    LongField,
+    StringField,
+    IntField,
+    URLField,
+    DictField,
+    DateTimeField,
+    EmbeddedDocumentField,
+    ReferenceField,
+    DynamicField,
+    BooleanField,
+    ListField,
+)
 
 
 class TweetReference(EmbeddedDocument):

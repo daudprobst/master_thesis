@@ -4,6 +4,6 @@
     "PYTHONPATH": "/home/david/Desktop/Masterarbeit/twit_scrape"
   },
   "python.linting.flake8Enabled": true,
-  "python.linting.flake8Args": ["--ignore=E501"],
+  "python.linting.flake8Args": ["--ignore=E501, W503"],
   "python.linting.enabled": true
 }
