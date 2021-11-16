@@ -14,14 +14,24 @@ from src.utils.datetime_helpers import (
 
 
 class Tweets:
-    def __init__(self, tweets: pd.DataFrame):
+    def __init__(self, tweets: pd.DataFrame, filters=[]):
         self._tweets = self._preprocess_inputs(tweets)
+
+        self._filter_log = [len(self._tweets)]
+        for filter in filters:
+            self._tweets = filter(self._tweets)
+            self._filter_log.append(len(self._tweets))
 
     def __len__(self):
         return len(self.tweets)
 
     @classmethod
-    def from_query(cls, fetch_query: str, full_match_required: bool = True):
+    def from_query(
+        cls,
+        fetch_query: str,
+        filters=[],
+        full_match_required: bool = True,
+    ):
         """Returns all tweets that were fetched by making use of the specified query
 
         :param fetch_query: the fetch_query for which tweets should be returned (query originally used for fetching!)
@@ -34,7 +44,9 @@ class Tweets:
                 fetch_query, full_match_required=full_match_required
             ).to_json()
         )
-        return cls(pd.DataFrame.from_records(firestorm_tweets_selection))
+        return cls(
+            pd.DataFrame.from_records(firestorm_tweets_selection), filters=filters
+        )
 
     @property
     def tweets(self):
@@ -42,46 +54,21 @@ class Tweets:
 
     @property
     def hourwise_metrics(self):
-        if not hasattr(self, '_hourwise_metrics'):
+        if not hasattr(self, "_hourwise_metrics"):
             self._hourwise_metrics = self.metrics_per_time_intervall("hour")
         return self._hourwise_metrics
 
     @property
     def six_hourwise_metrics(self):
-        if not hasattr(self, '_six_hourwise_metrics'):
-            self._six_hourwise_metrics = self.metrics_per_time_intervall("six_hour_slot")
+        if not hasattr(self, "_six_hourwise_metrics"):
+            self._six_hourwise_metrics = self.metrics_per_time_intervall(
+                "six_hour_slot"
+            )
         return self._six_hourwise_metrics
 
-    def select_time_range(
-        self,
-        start_time: datetime,
-        end_time: datetime,
-        time_variable: str = "created_at",
-    ):
-        """returns only those tweets that lie in the specified time range
-
-        :param start_point: starting point (inclusive) of the time range (only tweets after this point are returned)
-        :param end_point: end point (exclusive) of the time range (only tweets before this point are returned)
-        :param time_variable: time variable by which the selection should happen (defaults to 'created_at', e.g. 'hour'
-        migh also make sense in some instances)
-        :return: tweets after start_point AND before end_point
-        """
-
-        # TODO smarter solution for this tz issue / Which tz are the tweets stored in? Probably we should cast to UTC?
-
-        if start_time.tzinfo:
-            print("WARNING: Ignored tz information for selecting range of tweets")
-            start_time = start_time.replace(tzinfo=None)
-        if end_time.tzinfo:
-            print("WARNING: Ignored tz information for selecting range of tweets")
-            end_time = end_time.replace(tzinfo=None)
-
-        return self.__class__(
-            self.tweets[
-                (self.tweets[time_variable] >= start_time)
-                & (self.tweets[time_variable] < end_time)
-            ]
-        )
+    @property
+    def filter_log(self):
+        return self._filter_log
 
     def _preprocess_inputs(self, tweets) -> pd.DataFrame:
         """Parses created_at to datetime, adds hour attributes and casts categorical variables (e.g. tweet type) to
@@ -163,7 +150,7 @@ class Tweets:
                     "offensive_pct",
                     "is_offensive",
                     True,
-                ),  # CAREFUL WITH THE NONE VALUES!!!#
+                ),  # CAREFUL WITH THE NONE VALUES - i.e. not all value are labeled as offensive/not offensive!
                 (
                     "not_offensive_pct",
                     "is_offensive",
@@ -204,11 +191,3 @@ class Tweets:
         smoothed_line_plots(
             self.hourwise_metrics, x="hour", y=["total_tweets"], window_size=0, **kwargs
         ).show()
-
-
-if __name__ == "__main__":
-    from src.db.connection import connect_to_mongo
-    connect_to_mongo()
-    tweets = Tweets.from_query('pinkygloves', False)
-    print(tweets.hourwise_metrics)
-    print(tweets.hourwise_metrics)

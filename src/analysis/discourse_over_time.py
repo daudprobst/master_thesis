@@ -10,9 +10,7 @@ from src.twitter_data.tweets import Tweets
 
 def log_trend_tests(tweets: Tweets, variables_to_test: Sequence[str]):
     for variable in variables_to_test:
-        test_statistics = test_for_trend(
-            tweets.six_hourwise_metrics, variable
-        )
+        test_statistics = test_for_trend(tweets.six_hourwise_metrics, variable)
         print(f"\nTrend test for {variable}:\n")
         print(test_statistics)
         if test_statistics.p > 0.05:
@@ -63,6 +61,7 @@ if __name__ == "__main__":
     ####
 
     # for key, firestorm_meta in queried_firestorms.items():
+    """
     print(
         f'Analyzing tweets for query "{firestorm_meta["query"]}" between {firestorm_meta["data_start_date"]} '
         f'and {firestorm_meta["data_end_date"]}'
@@ -71,8 +70,9 @@ if __name__ == "__main__":
         firestorm_meta["data_start_date"], firestorm_meta["data_end_date"]
     )
     firestorm_tweets.plot_quantity_per_hour(title=key)
-
     """
+    """
+    
     print(
         list(
             zip(
