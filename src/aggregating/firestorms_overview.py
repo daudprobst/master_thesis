@@ -6,73 +6,35 @@ from src.db.connection import connect_to_mongo
 from src.db.queried import QUERIES
 from src.twitter_data.filters import default_filters_factory
 from src.twitter_data.tweets import Tweets
-from src.utils.conversions import float_to_pct
 
 
-def offensiveness_per_hour(query_dict: list[dict]) -> list[float]:
-    """Returns the offensiveness in the discourse of the firestorm per hour to file_path (only in true_data time range)
-
-    :param query_dict: the query dict containing the query itself as well as the end and start date
-    :return: percentage of offensive tweets per hour of the discourse in the queried firestorm (rounded to 2 decimals)
-    """
-
-    firestorm = Tweets.from_query(
-        query_dict["query"], filters=default_filters_factory(query_dict)
-    )
-
-    offensiveness_pct_raw = list(firestorm.hourwise_metrics["offensive_pct"])
-    return [round(offensiveness_pct, 4) for offensiveness_pct in offensiveness_pct_raw]
-
-
-def not_offensiveness_per_hour(query_dict: list[dict]) -> list[float]:
-    """TODO Remove"""
-
-    firestorm = Tweets.from_query(
-        query_dict["query"], filters=default_filters_factory(query_dict)
-    )
-
-    offensiveness_pct_raw = list(firestorm.hourwise_metrics["not_offensive_pct"])
-    return [round(offensiveness_pct, 4) for offensiveness_pct in offensiveness_pct_raw]
-
-
-def tweet_quantity_per_hour(query_dict: dict) -> list[int]:
+def tweet_quantity_per_hour(firestorm: Tweets) -> list[int]:
     """Returns the quantity of tweets per hour (only in true_data time range)
 
-    :param query_dict: the query dict containing the query itself as well as the end and start date
+    :param firestorm: collection of tweets for which the tweet quantity should be calculated
     :return: list of total_tweets per hour for each hour in firestorm
     """
-
-    firestorm = Tweets.from_query(
-        query_dict["query"], filters=default_filters_factory(query_dict)
-    )
 
     return list(firestorm.hourwise_metrics["total_tweets"].astype("int64"))
 
 
-def get_firestorms_metadata(query_dict: dict) -> dict:
+def offensiveness_per_hour(firestorm: Tweets) -> list[float]:
+    """Returns the offensiveness in the discourse of the firestorm per hour to file_path (only in true_data time range)
+
+     :param firestorm: collection of tweets for which the offensiveness should be calculated
+    :return: percentage of offensive tweets per hour of the discourse in the queried firestorm (rounded to 2 decimals)
+    """
+    offensiveness_pct_raw = list(firestorm.hourwise_metrics["offensive_pct"])
+    return [round(offensiveness_pct, 4) for offensiveness_pct in offensiveness_pct_raw]
+
+
+def get_firestorms_metadata(firestorm: Tweets, query_dict: dict) -> dict:
     """Returns a selection of metadata for the firestorm described by the query
     :param query_dict: the query dict containing the query itself as well as the end and start date
     :return: A dictionary containing metadata such as length, average_aggression, start and end data for the firestorm
     """
 
-    firestorm = Tweets.from_query(
-        query_dict["query"], filters=default_filters_factory(query_dict)
-    )
-
-    filter_log = firestorm.filter_log
-
-    value_counts = firestorm.tweets.is_offensive.value_counts().to_dict()
-
-    output_dict = {
-        "length": len(firestorm),
-        "filtering_lengths_log": filter_log,
-        "pct_filtered": float_to_pct(1 - (filter_log[0] / filter_log[-1])),
-        "average_aggressiveness": float_to_pct(
-            value_counts[True] / (value_counts[True] + value_counts[False])
-        ),
-        "aggr_value_counts": value_counts,
-    }
-
+    output_dict = firestorm.metadata()
     output_dict.update(query_dict)
 
     # parsing datetime to more easily readable format
@@ -84,40 +46,73 @@ def get_firestorms_metadata(query_dict: dict) -> dict:
     return output_dict
 
 
-if __name__ == "__main__":
-    """
-    connect_to_mongo()
-    with open(
-        "/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms_quantities.csv",
-        "w",
-    ) as f:
-        writer = csv.writer(f)
-        for key, query_dict in QUERIES.items():
-            quantities = tweet_quantity_per_hour(query_dict)
-            print([key] + quantities)
-            writer.writerow([key] + quantities)
-    """
+def firestorms_summarized_to_csvs(query_dicts: dict, write_settings: dict = None):
+    query_dicts = list(query_dicts.items())
+    # Opening Files
+    open_files = []
+    if write_settings['aggression']['enabled']:
+        aggr_file = open(write_settings['aggression']['file_name'], 'w')
+        aggr_writer = csv.writer(aggr_file)
+        open_files.append(aggr_file)
 
-    connect_to_mongo()
-    with open(os.getcwd() + "/data/firestorm_aggressions2.csv", "w") as f:
-        writer = csv.writer(f)
-        for key, query_dict in list(QUERIES.items())[0:1]:  # TODO remove selection
-            quantities = offensiveness_per_hour(query_dict)
-            print([key] + quantities)
-            writer.writerow([key] + quantities)
-            anti_quants = not_offensiveness_per_hour(query_dict)
-            writer.writerow(["NEG" + key] + anti_quants)
+    if write_settings['quantities']['enabled']:
+        quantity_file = open(write_settings['quantities']['file_name'], 'w')
+        quantity_writer = csv.writer(quantity_file)
+        open_files.append(quantity_file)
 
-    """
-    connect_to_mongo()
-    with open('/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms_overview.csv', 'w') as f:
-        writer = csv.writer(f)
-        # just querying a random firestorm to write the headers
-        writer.writerow(get_firestorms_metadata(list(QUERIES.values())[0]))
-        # loading the actual values
-        for key, query_dict in QUERIES.items():
-            print(f'Processing {key}')
-            firestorm_summary = get_firestorms_metadata(query_dict)
+    if write_settings['overview']['enabled']:
+        overview_file = open(write_settings['overview']['file_name'], 'w')
+        overview_writer = csv.writer(overview_file)
+        open_files.append(overview_file)
+
+    # Writing Headers
+    if write_settings['overview']['enabled']:
+        first_query_dict = query_dicts[0][1]
+        first_firestorm = Tweets.from_query(
+            first_query_dict["query"], filters=default_filters_factory(first_query_dict)
+        )
+        overview_writer.writerow(['key'] + list(get_firestorms_metadata(first_firestorm, first_query_dict).keys()))
+
+    # Writing Data
+    for key, query_dict in query_dicts:
+        # Loading the firestorm
+        print(f'Processing {key}')
+        firestorm = Tweets.from_query(
+            query_dict["query"], filters=default_filters_factory(query_dict)
+        )
+        if write_settings['aggression']['enabled']:
+            aggr_writer.writerow([key] + offensiveness_per_hour(firestorm))
+
+        if write_settings['quantities']['enabled']:
+            quantity_writer.writerow([key] + tweet_quantity_per_hour(firestorm))
+
+        if write_settings['overview']['enabled']:
+            firestorm_summary = get_firestorms_metadata(firestorm, query_dict)
             print(firestorm_summary)
-            writer.writerow(firestorm_summary.values())
-    """
+            overview_writer.writerow([key] + list(firestorm_summary.values()))
+
+    # Closing Files
+    for file in open_files:
+        file.close()
+
+
+if __name__ == "__main__":
+    connect_to_mongo()
+
+    query_dicts = QUERIES
+    write_settings = {
+        'aggression': {
+            'enabled': True,
+            'file_name': os.getcwd() + "/data/firestorm_aggressions.csv"
+        },
+        'quantities': {
+            'enabled': True,
+            'file_name': os.getcwd() + "/data/firestorm_quantities.csv"
+        },
+        'overview': {
+            'enabled': True,
+            'file_name': os.getcwd() + "/data/firestorm_overview.csv"
+        },
+    }
+
+    firestorms_summarized_to_csvs(query_dicts, write_settings)

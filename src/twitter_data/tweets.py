@@ -1,4 +1,3 @@
-from datetime import datetime
 from json import loads
 from typing import Sequence, Tuple
 
@@ -11,6 +10,7 @@ from src.utils.datetime_helpers import (
     round_to_hour_slots,
     unix_ms_to_date,
 )
+from src.utils.conversions import float_to_pct
 
 
 class Tweets:
@@ -191,3 +191,20 @@ class Tweets:
         smoothed_line_plots(
             self.hourwise_metrics, x="hour", y=["total_tweets"], window_size=0, **kwargs
         ).show()
+
+    def metadata(self) -> dict:
+        """Returns a selection of metadata for the firestorm described by the query
+        :return: A dictionary containing metadata such as length, average_aggression, start and end data for the firestorm
+        """
+
+        value_counts = self.tweets.is_offensive.value_counts().to_dict()
+
+        return {
+            "length": len(self),
+            "filtering_lengths_log": self.filter_log,
+            "pct_filtered": float_to_pct(1 - (self.filter_log[-1] / self.filter_log[0])),
+            "average_aggressiveness": float_to_pct(
+                value_counts[True] / (value_counts[True] + value_counts[False])
+            ),
+            "aggr_value_counts": value_counts,
+        }

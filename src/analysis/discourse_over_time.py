@@ -72,7 +72,7 @@ if __name__ == "__main__":
     firestorm_tweets.plot_quantity_per_hour(title=key)
     """
     """
-    
+
     print(
         list(
             zip(
