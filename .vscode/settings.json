@@ -1,7 +1,7 @@
 {
   "python.formatting.provider": "black",
   "terminal.integrated.env.linux": {
-    "PYTHONPATH": "/home/david/Desktop/Masterarbeit/twit_scrape"
+    "PYTHONPATH": "${workspaceFolder}"
   },
   "python.linting.flake8Enabled": true,
   "python.linting.flake8Args": ["--ignore=E501, W503, E203"],
