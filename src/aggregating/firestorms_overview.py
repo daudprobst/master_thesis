@@ -50,43 +50,46 @@ def firestorms_summarized_to_csvs(query_dicts: dict, write_settings: dict = None
     query_dicts = list(query_dicts.items())
     # Opening Files
     open_files = []
-    if write_settings['aggression']['enabled']:
-        aggr_file = open(write_settings['aggression']['file_name'], 'w')
+    if write_settings["aggression"]["enabled"]:
+        aggr_file = open(write_settings["aggression"]["file_name"], "w")
         aggr_writer = csv.writer(aggr_file)
         open_files.append(aggr_file)
 
-    if write_settings['quantities']['enabled']:
-        quantity_file = open(write_settings['quantities']['file_name'], 'w')
+    if write_settings["quantities"]["enabled"]:
+        quantity_file = open(write_settings["quantities"]["file_name"], "w")
         quantity_writer = csv.writer(quantity_file)
         open_files.append(quantity_file)
 
-    if write_settings['overview']['enabled']:
-        overview_file = open(write_settings['overview']['file_name'], 'w')
+    if write_settings["overview"]["enabled"]:
+        overview_file = open(write_settings["overview"]["file_name"], "w")
         overview_writer = csv.writer(overview_file)
         open_files.append(overview_file)
 
     # Writing Headers
-    if write_settings['overview']['enabled']:
+    if write_settings["overview"]["enabled"]:
         first_query_dict = query_dicts[0][1]
         first_firestorm = Tweets.from_query(
             first_query_dict["query"], filters=default_filters_factory(first_query_dict)
         )
-        overview_writer.writerow(['key'] + list(get_firestorms_metadata(first_firestorm, first_query_dict).keys()))
+        overview_writer.writerow(
+            ["key"]
+            + list(get_firestorms_metadata(first_firestorm, first_query_dict).keys())
+        )
 
     # Writing Data
     for key, query_dict in query_dicts:
         # Loading the firestorm
-        print(f'Processing {key}')
+        print(f"Processing {key}")
         firestorm = Tweets.from_query(
             query_dict["query"], filters=default_filters_factory(query_dict)
         )
-        if write_settings['aggression']['enabled']:
+        if write_settings["aggression"]["enabled"]:
             aggr_writer.writerow([key] + offensiveness_per_hour(firestorm))
 
-        if write_settings['quantities']['enabled']:
+        if write_settings["quantities"]["enabled"]:
             quantity_writer.writerow([key] + tweet_quantity_per_hour(firestorm))
 
-        if write_settings['overview']['enabled']:
+        if write_settings["overview"]["enabled"]:
             firestorm_summary = get_firestorms_metadata(firestorm, query_dict)
             print(firestorm_summary)
             overview_writer.writerow([key] + list(firestorm_summary.values()))
@@ -99,19 +102,23 @@ def firestorms_summarized_to_csvs(query_dicts: dict, write_settings: dict = None
 if __name__ == "__main__":
     connect_to_mongo()
 
-    query_dicts = QUERIES
+    query_dicts = {
+        key: entry
+        for (key, entry) in QUERIES.items()
+        if not ("disabled" in entry and entry["disabled"])
+    }
     write_settings = {
-        'aggression': {
-            'enabled': True,
-            'file_name': os.getcwd() + "/data/firestorm_aggressions.csv"
+        "aggression": {
+            "enabled": True,
+            "file_name": os.getcwd() + "/data/firestorm_aggressions.csv",
         },
-        'quantities': {
-            'enabled': True,
-            'file_name': os.getcwd() + "/data/firestorm_quantities.csv"
+        "quantities": {
+            "enabled": True,
+            "file_name": os.getcwd() + "/data/firestorm_quantities.csv",
         },
-        'overview': {
-            'enabled': True,
-            'file_name': os.getcwd() + "/data/firestorm_overview.csv"
+        "overview": {
+            "enabled": True,
+            "file_name": os.getcwd() + "/data/firestorm_overview.csv",
         },
     }
 

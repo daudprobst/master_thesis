@@ -104,6 +104,7 @@ QUERIES = {
     },
     "helmeLookLikeShit": {
         "query": "#HelmeRettenLeben OR #lookslikeshit OR #saveslifes OR conversation_id:1108842805089177615",
+        "disabled": True,
         "data_start_date": day_wrapping_datetimes(
             datetime.strptime("2019-03-14", "%Y-%m-%d")
         )[0],
@@ -115,6 +116,7 @@ QUERIES = {
     },
     "studentinnenfutter": {
         "query": "#Studentinnenfutter OR Studierendenfutter OR conversation_id:1413204084694437888",
+        "disabled": True,
         "data_start_date": day_wrapping_datetimes(
             datetime.strptime("2021-07-01", "%Y-%m-%d")
         )[0],
@@ -131,6 +133,7 @@ QUERIES = {
     "dbUnternehmerischeEntscheidung": {
         "query": "conversation_id:1359969795068727296 OR conversation_id:1349076313315942404 OR "
         "conversation_id:1359926029909827585",
+        "disabled": True,
         "data_start_date": day_wrapping_datetimes(
             datetime.strptime("2021-02-04", "%Y-%m-%d")
         )[0],
@@ -142,6 +145,7 @@ QUERIES = {
     },
     "thunbergsVsDB": {
         "query": "conversation_id:1206182673888219136",
+        "disabled": True,
         "data_start_date": day_wrapping_datetimes(
             datetime.strptime("2019-12-08", "%Y-%m-%d")
         )[0],
