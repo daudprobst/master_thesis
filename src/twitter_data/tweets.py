@@ -4,7 +4,7 @@ from typing import Sequence, Tuple
 import pandas as pd
 
 from src.db.queries.tweet_queries import get_tweets_for_search_query
-from src.graphs.line_plots import smoothed_line_plots
+from src.graphs.line_plots import df_smoothed_line_plots
 from src.utils.datetime_helpers import (
     round_to_hour,
     round_to_hour_slots,
@@ -188,8 +188,8 @@ class Tweets:
         return output_df.sort_index()
 
     def plot_quantity_per_hour(self, **kwargs) -> None:
-        smoothed_line_plots(
-            self.hourwise_metrics, x="hour", y=["total_tweets"], window_size=0, **kwargs
+        df_smoothed_line_plots(
+            self.hourwise_metrics, x_attr="hour", y_attrs=["total_tweets"], **kwargs
         ).show()
 
     def metadata(self) -> dict:
@@ -202,7 +202,9 @@ class Tweets:
         return {
             "length": len(self),
             "filtering_lengths_log": self.filter_log,
-            "pct_filtered": float_to_pct(1 - (self.filter_log[-1] / self.filter_log[0])),
+            "pct_filtered": float_to_pct(
+                1 - (self.filter_log[-1] / self.filter_log[0])
+            ),
             "average_aggressiveness": float_to_pct(
                 value_counts[True] / (value_counts[True] + value_counts[False])
             ),

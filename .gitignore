@@ -3,4 +3,5 @@ venv
 .idea
 data
 models
+plots
 .vscode

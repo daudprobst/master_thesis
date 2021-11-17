@@ -5,42 +5,33 @@ from scipy import signal
 import plotly.graph_objects as go
 
 
-def smoothed_line_plots(
-    ts_data: pd.DataFrame, x: str, y: Sequence[str], **kwargs
-) -> go:
+def df_smoothed_line_plots(
+    ts_data: pd.DataFrame, x_attr: str, y_attrs: Sequence[str], **kwargs
+) -> go.Figure:
     fig = go.Figure()
-    print(kwargs)
-    # window size used for filtering
-    if "window_size" in kwargs:
-        window_size = kwargs.pop("window_size")
-    else:
-        window_size = 23
 
-    # order of fitted polynomial
-    if "polynomial_order" in kwargs:
-        polynomial_order = kwargs.pop("polynomial_order")
-    else:
-        polynomial_order = 3
-
-    for y_entry in y:
-        if window_size == 0:
-            y_sig = ts_data[y_entry]
-        else:
-            y_sig = signal.savgol_filter(
-                ts_data[y_entry], window_size, polynomial_order
-            )
-
+    for y_attr in y_attrs:
         fig.add_trace(
-            go.Scatter(
-                x=ts_data[x],
-                y=y_sig,
-                text=[
-                    f'Total tweets: {row["total_tweets"]}'
-                    for name, row in ts_data.iterrows()
-                ],
-                name=y_entry,
+            smoothed_line_trace(
+                x=ts_data[x_attr],
+                y=ts_data[y_attr],
+                name=y_attr,
             )
         )
 
     fig.update_layout(**kwargs)
     return fig
+
+
+def smoothed_line_trace(
+    y: list,
+    x: list,
+    name: str = "unnamed",
+    window_size: int = 23,
+    polynomial_order: int = 3,
+) -> go.Scatter():
+
+    if window_size != 0:  # no smoothing if window size 0 is passed
+        y = signal.savgol_filter(y, window_size, polynomial_order)
+
+    return go.Scatter(x=x, y=y, name=name)
