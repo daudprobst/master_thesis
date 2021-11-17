@@ -168,6 +168,20 @@ class Tweets:
 
         # group all tweets that appeared in the same hour and calculate stats for them
         tweets_by_hour = self.tweets.groupby(grouping_var)
+
+        # We need to include every hour not just hours were tweets occured
+
+        first_timestamp = self.tweets[grouping_var].min().floor('24H')
+        last_timestamp = self.tweets[grouping_var].max().ceil('24H') - pd.Timedelta(hours=1)
+        hourly_timestamps = (pd.date_range(first_timestamp, last_timestamp, freq='h'))
+
+        # intialize empty df
+        for timestamp in hourly_timestamps:
+            output_df[grouping_var] = timestamp
+            output_df.at[timestamp, "total_tweets"] = 0
+            for col, var_name, value in to_calculate:
+                output_df.at[timestamp, col] = 0
+
         for name, group in tweets_by_hour:
             total_length = len(group)
             output_df.at[name, "total_tweets"] = total_length

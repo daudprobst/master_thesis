@@ -1,6 +1,6 @@
 import csv
 import os
-from src.graphs.line_plots import smoothed_line_trace
+from src.graphs.line_plots import smoothed_line_trace, df_smoothed_line_plots
 from src.analysis.timeseries import Timeseries
 
 import plotly.graph_objects as go
@@ -18,7 +18,7 @@ def quantity_plot(file_name: str, normalize=False):
             if normalize:
                 firestorm_ts.normalize()
             trace = smoothed_line_trace(
-                firestorm_ts.y, firestorm_ts.x, name=firestorm_name
+                firestorm_ts.y, firestorm_ts.x, name=firestorm_name, window_size=0
             )
             fig.add_trace(trace)
     fig.show()

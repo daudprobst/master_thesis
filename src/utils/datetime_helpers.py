@@ -7,10 +7,8 @@ def unix_ms_to_date(unix_ms: int) -> datetime:
 
 
 def round_to_hour(t: datetime) -> datetime:
-    """Returns the datetime rounded up/down to the hour"""
-    return t.replace(second=0, microsecond=0, minute=0, hour=t.hour) + timedelta(
-        hours=t.minute // 30
-    )
+    """Returns the datetime rounded down to the hour"""
+    return t.replace(second=0, microsecond=0, minute=0, hour=t.hour)
 
 
 def round_to_hour_slots(t: datetime, hours_in_slot=6) -> datetime:
