@@ -30,7 +30,9 @@ QUERIES = {
         "true_start_date": day_wrapping_datetimes(
             datetime.strptime("2020-06-12", "%Y-%m-%d")
         )[0],
-        "true_end_date": None,
+        "true_end_date": day_wrapping_datetimes(
+            datetime.strptime("2020-06-21", "%Y-%m-%d")
+        )[1],
     },
     "spahnruecktritt": {
         "query": "#spahnruecktritt OR #spahnruecktrittjetzt",
@@ -49,6 +51,7 @@ QUERIES = {
     },
     "masken_csu": {
         "query": "#Nuesslein OR #Maskendeals OR #Maskenaffäre OR #Aserbaidschan OR #schwarzerFilz",
+        "disabled": True,  # disabled as tweets returned were not matching the firestorm well
         "data_start_date": day_wrapping_datetimes(
             datetime.strptime("2021-02-18", "%Y-%m-%d")
         )[0],
@@ -72,11 +75,12 @@ QUERIES = {
             datetime.strptime("2021-05-05", "%Y-%m-%d")
         )[0],
         "true_end_date": day_wrapping_datetimes(
-            datetime.strptime("2021-05-08", "%Y-%m-%d")
+            datetime.strptime("2021-05-06", "%Y-%m-%d")
         )[1],
     },
     "studierenWieBaerbock": {
         "query": "#studierenwieBaerbock OR #Bundescancelerin OR #baerbockfail",
+        "disabled": True,  # disabled for now as there are two spikes
         "data_start_date": day_wrapping_datetimes(
             datetime.strptime("2021-05-07", "%Y-%m-%d")
         )[0],
@@ -99,7 +103,7 @@ QUERIES = {
             datetime.strptime("2019-12-28", "%Y-%m-%d")
         )[0],
         "true_end_date": day_wrapping_datetimes(
-            datetime.strptime("2020-01-01", "%Y-%m-%d")
+            datetime.strptime("2019-12-31", "%Y-%m-%d")
         )[1],
     },
     "helmeLookLikeShit": {
@@ -184,7 +188,7 @@ QUERIES = {
             datetime.strptime("2021-07-01", "%Y-%m-%d")
         )[1],
         "true_start_date": day_wrapping_datetimes(
-            datetime.strptime("2021-06-20", "%Y-%m-%d")
+            datetime.strptime("2021-06-22", "%Y-%m-%d")
         )[0],
         "true_end_date": day_wrapping_datetimes(
             datetime.strptime("2021-06-23", "%Y-%m-%d")
