@@ -8,11 +8,12 @@ from src.db.connection import connect_to_mongo
 from src.twitter_data.tweets import Tweets
 from src.graphs.line_plots import smoothed_line_trace
 
+
 def raw_quantity_plot(query_dicts: dict, output_folder: str):
     query_dicts = query_dicts.items()
     fig = go.Figure()
     fig.update_layout(
-        xaxis_title="Date",
+        xaxis_title="Time",
         yaxis_title="Tweets per Hour",
     )
     for key, query_dict in query_dicts:
@@ -20,6 +21,7 @@ def raw_quantity_plot(query_dicts: dict, output_folder: str):
         firestorm = Tweets.from_query(
             query_dict["query"], filters=[equality_filter_factory("lang", "de")]
         )
+
         single_fig = go.Figure()
         single_fig.update_layout(
             xaxis_title="Date",
