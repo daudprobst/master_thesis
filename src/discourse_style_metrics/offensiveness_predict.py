@@ -6,6 +6,7 @@ import pandas as pd
 import torch
 import transformers
 from sklearn.metrics import classification_report, precision_recall_fscore_support
+from sklearn.model_selection import train_test_split
 from timebudget import timebudget
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -88,7 +89,7 @@ def evaluate_model(
             if prediction != true_label:
                 print(labeled_tweets.iloc[i].text)
                 print(
-                    f"Prediction was {CLASS_LIST[prediction]}, true value was {CLASS_LIST[int(true_label)]}\n"
+                    f"Prediction was {class_list[prediction]}, true value was {class_list[int(true_label)]}\n"
                 )
 
     print(classification_report(y_true, y_pred, labels=[0, 1]))
@@ -102,20 +103,18 @@ def evaluate_model(
 
 
 if __name__ == "__main__":
-    model, tokenizer = load_model("models/german_hatespeech_detection_finetuned")
+    model, tokenizer = load_model("/models/german_hatespeech_detection_finetuned")
 
     TRAIN_FILES = [
-        "../../data/offensiveness_training_data/germeval2018.test_.txt",
-        "../../data/offensiveness_training_data/germeval2018.training.txt",
-        "../../data/offensiveness_training_data/germeval2019.training_subtask1_2_korrigiert.txt",
+        f"{os.getcwd()}/data/offensiveness_training_data/germeval2018.test_.txt",
+        f"{os.getcwd()}/data/offensiveness_training_data/germeval2018.training.txt",
+        f"{os.getcwd()}/data/offensiveness_training_data/germeval2019.training_subtask1_2_korrigiert.txt",
     ]
 
     full_data = read_germeval_data(TRAIN_FILES, CLASS_LIST)
 
     X = list(full_data["text"])
     y = list(full_data["label"])
-
-    from sklearn.model_selection import train_test_split
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.33, random_state=42
@@ -125,23 +124,3 @@ if __name__ == "__main__":
 
     with timebudget("Evaluating model on test set"):
         evaluate_model(model, tokenizer, test_data_df, CLASS_LIST)
-
-    """
-    tweets = read_germeval_data(['../../data/aggr_sample/sample_labeled.csv'],
-                                CLASS_LIST)
-
-    with timebudget("Predicting in batches"):
-        pred_batches = predict_in_batches(model, tokenizer, list(tweets.text))
-
-    with timebudget("Predicting one at a time"):
-        pred_singles = []
-        for tweet in list(tweets.text):
-            pred_singles.append(
-                predict_single(model, tokenizer, tweet)
-            )
-
-    print(pred_batches == pred_singles)
-
-    print("\n" + str(pred_batches))
-    print("\n" + str(pred_singles))
-    """
