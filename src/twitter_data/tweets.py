@@ -70,7 +70,7 @@ class Tweets:
     def filter_log(self):
         return self._filter_log
 
-    def _preprocess_inputs(self, tweets) -> pd.DataFrame:
+    def _preprocess_inputs(self, tweets: pd.DataFrame) -> pd.DataFrame:
         """Parses created_at to datetime, adds hour attributes and casts categorical variables (e.g. tweet type) to
         categorical dytpe
 
@@ -160,19 +160,23 @@ class Tweets:
 
         # setting up the output_df
         # index should contain hour (not just hours were tweets occured)
-        first_timestamp = self.tweets[grouping_var].min().floor('24H')
-        last_timestamp = self.tweets[grouping_var].max().ceil('24H') - pd.Timedelta(hours=1)
-        hourly_timestamps = (pd.date_range(first_timestamp, last_timestamp, freq='h'))
+        first_timestamp = self.tweets[grouping_var].min().floor("24H")
+        last_timestamp = self.tweets[grouping_var].max().ceil("24H") - pd.Timedelta(
+            hours=1
+        )
+        hourly_timestamps = pd.date_range(first_timestamp, last_timestamp, freq="h")
 
         cols = [x[0] for x in to_calculate]
-        cols.extend(['total_tweets', 'total_tweets_pct'])
+        cols.extend(["total_tweets", "total_tweets_pct"])
         output_df = pd.DataFrame(columns=cols, index=hourly_timestamps)
         output_df[
-            grouping_var
+            "hour"
         ] = output_df.index  # also have index as column (often useful for plotting)
 
         # intialize empty df with 0s
-        output_df = output_df.fillna(0)
+        output_df = output_df.fillna(
+            0.0
+        )  # we need 0.0 so the col.dtype is float instead of int
 
         # group all tweets that appeared in the same hour and calculate stats for them
         tweets_by_hour = self.tweets.groupby(grouping_var)

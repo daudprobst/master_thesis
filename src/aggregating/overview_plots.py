@@ -35,9 +35,9 @@ def raw_quantity_plot(query_dicts: dict, output_folder: str):
                 window_size=0,
             )
         )
-        single_fig.write_image(output_folder + f'{key}_raw.jpg')
+        single_fig.write_image(output_folder + f"{key}_raw.jpg")
         single_fig.add_hline(y=(max(firestorm.hourwise_metrics["total_tweets"]) * 0.2))
-        single_fig.write_image(output_folder + f'{key}_raw_with_threshhold.jpg')
+        single_fig.write_image(output_folder + f"{key}_raw_with_threshhold.jpg")
         fig.add_trace(
             smoothed_line_trace(
                 y=firestorm.hourwise_metrics["total_tweets"],
