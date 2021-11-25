@@ -1,4 +1,4 @@
-from pathsrc import Path
+import os
 
 from src.db.connection import connect_to_mongo
 from src.db.helpers import query_set_to_df
@@ -22,26 +22,31 @@ if __name__ == "__main__":
 
     sample_df = query_set_to_df(sample)
     print(len(sample_df))
+    # integrating retweet could mean that labelers are shown the same tweet multiple times
     sample_df = sample_df[sample_df["tweet_type"] != "retweet without comment"]
     sample_df = sample_df[
         sample_df["tweet_type"].notna()
-    ]  # some older fetches have nan!
+    ]  # some older fetches (not used in thesis) have nan and are kicked out here!
+    sample_df = sample_df[
+        sample_df["tweet_type"].notna()
+    ]  # some older fetches (not used in thesis) have nan and are kicked out here!
+
     print(len(sample_df))
 
+    # only use german tweets
     sample_df = sample_df[sample_df.lang == "de"]
+
+    # shuffle random sample
+    sample_df = sample_df.sample(frac=1).reset_index(drop=True)
+
     print(len(sample_df))
+    selected_sample = sample_df.head(300)
+    print(len(selected_sample))
 
-    filtered_sample = sample_df.head(300)
-    print(len(filtered_sample))
+    selected_sample = selected_sample[["_id", "text"]]
 
-    from sklearn.utils import shuffle
-
-    # filtered_sample = shuffle(filtered_sample)
-
-    filtered_sample = filtered_sample[["_id", "text"]]
-
-    filtered_sample.to_csv(
-        Path("../../../data/aggr_sample/full_sample.csv").resolve(),
+    selected_sample.to_csv(
+        f"{os.getcwd()}/data/aggr_sample/full_sample.csv",
         sep="\t",
         header=["id", "text"],
     )
