@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta, time
+import pytz
+from datetime import datetime, timedelta, time, timezone
 from typing import Tuple
 
 
-def unix_ms_to_date(unix_ms: int) -> datetime:
-    return datetime.fromtimestamp(float(unix_ms / 1000))
+def unix_ms_to_utc_date(unix_ms: int) -> datetime:
+    return datetime.fromtimestamp(float(unix_ms / 1000.0), tz=timezone.utc)
 
 
 def round_to_hour(t: datetime) -> datetime:
@@ -27,7 +28,8 @@ def day_wrapping_datetimes(day: datetime) -> Tuple[datetime, datetime]:
     :param day: day for which we want the first and last second
     :return: Tuple containing datetimes for first and last second of day
     """
+
     return (
-        datetime.combine(day.date(), time.min),
-        datetime.combine((day + timedelta(days=1)).date(), time.min),
+        datetime.combine(day.date(), time.min, tzinfo=day.tzinfo),
+        datetime.combine((day + timedelta(days=1)).date(), time.min, tzinfo=day.tzinfo),
     )

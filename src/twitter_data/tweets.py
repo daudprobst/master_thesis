@@ -1,5 +1,7 @@
+import pytz
 from json import loads
 from typing import Sequence, Tuple
+from mongoengine.connection import connect
 
 import pandas as pd
 
@@ -8,7 +10,7 @@ from src.graphs.line_plots import df_smoothed_line_plots
 from src.utils.datetime_helpers import (
     round_to_hour,
     round_to_hour_slots,
-    unix_ms_to_date,
+    unix_ms_to_utc_date,
 )
 from src.utils.conversions import float_to_pct
 
@@ -93,8 +95,13 @@ class Tweets:
         # adding date attributes
         try:
             tweets["created_at"] = tweets["created_at"].apply(
-                lambda x: unix_ms_to_date(x["$date"])
+                lambda x: unix_ms_to_utc_date(x["$date"])
             )
+            ger_tz = pytz.timezone("Europe/Berlin")
+            tweets["created_at"] = tweets["created_at"].apply(
+                lambda x: x.astimezone(ger_tz)
+            )
+            tweets["created_at"] = tweets["created_at"]
             tweets["hour"] = tweets["created_at"].apply(lambda x: round_to_hour(x))
             tweets["six_hour_slot"] = tweets["created_at"].apply(
                 lambda x: round_to_hour_slots(x)
@@ -223,3 +230,22 @@ class Tweets:
             ),
             "aggr_value_counts": value_counts,
         }
+
+
+if __name__ == "__main__":
+    from src.db.connection import connect_to_mongo
+    from src.db.queried import QUERIES
+    from src.twitter_data.filters import default_filters_factory
+
+    connect_to_mongo()
+    firestorm = Tweets.from_query(
+        QUERIES["pinkygloves"]["query"],
+        filters=default_filters_factory(QUERIES["pinkygloves"]),
+    )
+
+    print(firestorm.tweets.tail(3).reset_index().loc[1])
+    print(firestorm.tweets.head())
+    print(firestorm.tweets["created_at"].dtype)
+    print(list(firestorm.tweets["created_at"])[0])
+    print(list(firestorm.tweets["created_at"])[-1])
+    print(type(list(firestorm.tweets["created_at"])[0]))
