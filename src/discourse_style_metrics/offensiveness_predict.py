@@ -102,16 +102,17 @@ def evaluate_model(
     print(f"Predicted Distribution: {Counter(y_pred)}")
 
 
-if __name__ == "__main__":
+def evaluate_modeL_wrapper(train_files: list[str] = None):
+    if not train_files:
+        train_files = [
+            f"{os.getcwd()}/data/offensiveness_training_data/germeval2018.test_.txt",
+            f"{os.getcwd()}/data/offensiveness_training_data/germeval2018.training.txt",
+            f"{os.getcwd()}/data/offensiveness_training_data/germeval2019.training_subtask1_2_korrigiert.txt",
+        ]
+
     model, tokenizer = load_model("/models/german_hatespeech_detection_finetuned")
 
-    TRAIN_FILES = [
-        f"{os.getcwd()}/data/offensiveness_training_data/germeval2018.test_.txt",
-        f"{os.getcwd()}/data/offensiveness_training_data/germeval2018.training.txt",
-        f"{os.getcwd()}/data/offensiveness_training_data/germeval2019.training_subtask1_2_korrigiert.txt",
-    ]
-
-    full_data = read_germeval_data(TRAIN_FILES, CLASS_LIST)
+    full_data = read_germeval_data(train_files, CLASS_LIST)
 
     X = list(full_data["text"])
     y = list(full_data["label"])
@@ -121,6 +122,22 @@ if __name__ == "__main__":
     )
 
     test_data_df = pd.DataFrame({"text": X_test, "label": y_test})
+
+    print(test_data_df)
+    # with timebudget("Evaluating model on test set"):
+    #    evaluate_model(model, tokenizer, test_data_df, CLASS_LIST)
+
+
+if __name__ == "__main__":
+    evaluate_modeL_wrapper()
+
+    model, tokenizer = load_model("/models/german_hatespeech_detection_finetuned")
+    filepath_labeled_data = os.getcwd() + "/data/aggr_sample/aggregated_labels.csv"
+    test_data_df = pd.read_csv(filepath_labeled_data, sep="\t")
+    test_data_df["label"] = test_data_df.apply(
+        lambda x: CLASS_LIST.index(x["label"]), axis=1
+    )
+    print(test_data_df)
 
     with timebudget("Evaluating model on test set"):
         evaluate_model(model, tokenizer, test_data_df, CLASS_LIST)
