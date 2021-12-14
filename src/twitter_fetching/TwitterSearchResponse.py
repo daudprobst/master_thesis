@@ -68,9 +68,7 @@ class TwitterSearchResponse:
     def write_to_db(self) -> None:
         for entry in self.attach_media_to_tweets():
             entry["search_params"] = self.search_params
-            mongo_db.Tweets.from_json(
-                dumps(entry), True
-            ).save()  # TODO force_insert=True?
+            mongo_db.Tweets.from_json(dumps(entry), True).save()
 
         for user in self.users:
             mongo_db.Users.from_json(dumps(user), True).save()  # updates existing users

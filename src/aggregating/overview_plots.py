@@ -28,10 +28,7 @@ def raw_quantity_plot(query_dicts: dict, output_folder: str):
                 "showgrid": False,
                 "showline": False,
             },
-            yaxis={
-                "title": "Tweets per Hour",
-                "showgrid": False
-            }
+            yaxis={"title": "Tweets per Hour", "showgrid": False},
         )
 
         fig = go.Figure(layout=layout)
@@ -58,10 +55,9 @@ def raw_quantity_plot(query_dicts: dict, output_folder: str):
         # write raw images
         fig.write_image(output_folder + f"{key}_raw.jpg")
 
-
         # add threshold line
         fig.add_hline(y=get_threshold(firestorm), line_dash="dash", line_width=2)
-        
+
         # add selection
 
         start_date, end_date = get_firestorm_wrapping_datetime(firestorm)

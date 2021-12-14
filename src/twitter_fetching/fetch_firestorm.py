@@ -48,6 +48,6 @@ if __name__ == "__main__":
 
     res_fetch_report = recent_search(
         req_params, tweet_fetch_limit=25000
-    )  # TODO tweak fetch limit!
+    )  # tweak fetch limit!
     print(res_fetch_report)
     fetch_report_to_csv(res_fetch_report, "../../data/fetch_log.csv")

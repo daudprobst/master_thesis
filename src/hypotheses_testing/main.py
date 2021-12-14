@@ -1,9 +1,6 @@
 import pandas as pd
 from src.db.connection import connect_to_mongo
-from src.hypotheses_testing.helpers import (
-    load_hypothesis_dataset,
-    dummify_categoricals
-)
+from src.hypotheses_testing.helpers import load_hypothesis_dataset, dummify_categoricals
 
 
 import statsmodels.formula.api as smf

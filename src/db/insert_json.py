@@ -30,7 +30,7 @@ def insert_json_lines_file(filename: str, search_params: dict):
 
 
 def insert_one_tweet(entry: Dict) -> None:
-    mongo_db.Tweets.from_json(json.dumps(entry), True).save()  # TODO force_insert=True?
+    mongo_db.Tweets.from_json(json.dumps(entry), True).save()
 
 
 def insert_many_tweets(entries: List[Dict]):

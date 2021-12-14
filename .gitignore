@@ -4,3 +4,4 @@ venv
 data
 models
 plots
+.env
