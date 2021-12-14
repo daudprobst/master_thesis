@@ -1,28 +1,11 @@
-from json import loads
-from typing import List, Sequence
-
 from mongoengine import QuerySet
 from src.db.connection import connect_to_mongo
 from src.db.schemes import Tweets
-from src.utils.regex_helpers import remove_leading_hashtag
 
 
 def get_tweet_for_id(tweet_id) -> QuerySet:
     """Returns the tweet for the id (Query Set of length 1 if the tweet exists, length 0 if it does not exist)"""
     return Tweets.objects.get(id=tweet_id)
-
-
-def get_tweets_for_hashtags(*hashtags: Sequence[str]) -> QuerySet:
-    """Returns all tweets that contained one of the specified hashtags
-
-    :param hashtags: list of hashtags to query for
-    :return: mongoengine QuerySet that contains all tweets that contain at least one of the hashtags;
-    """
-
-    # Remove leading # symbol if they were included in the input
-    hashtags = remove_leading_hashtag(hashtags)
-
-    return Tweets.objects(entities__hashtags__tag__in=hashtags)
 
 
 def get_tweets_for_search_query(
@@ -44,15 +27,6 @@ def get_tweets_for_search_query(
         print(f'WARNING: Your query "{query}" did not return any results!')
 
     return results
-
-
-def get_tweets_for_search_query_sorted_by_time(hashtag: str) -> List[dict]:
-    tweets_query_set_sorted = (
-        get_tweets_for_search_query(hashtag)
-        .order_by("created_at")
-        .only("created_at", "user_type", "tweet_type", "contains_url", "lang")
-    )
-    return loads(tweets_query_set_sorted.to_json())
 
 
 if __name__ == "__main__":

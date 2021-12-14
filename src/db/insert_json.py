@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Dict, List, Tuple
 
 import src.db.schemes as mongo_db
@@ -68,7 +69,7 @@ def clean_json(input_filname: str, output_filename: str) -> Tuple[int, int, int]
 if __name__ == "__main__":
     connect_to_mongo()
 
-    BASE_URL = "/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms/"
+    BASE_URL = os.getcwd() + "/data/firestorms/"
 
     # CONFIGURE THESE TWO
     insert_filename = "helmeLookLikeShitFix.json"

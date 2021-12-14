@@ -1,8 +1,5 @@
 import os
-from collections import Counter
-from typing import final
 import pandas as pd
-import numpy as np
 from statsmodels.stats.inter_rater import fleiss_kappa, aggregate_raters
 
 

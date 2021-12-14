@@ -1,10 +1,10 @@
 import pytz
-from json import loads
 from typing import Sequence, Tuple
 
 import pandas as pd
 
 from src.db.queries.tweet_queries import get_tweets_for_search_query
+from src.db.helpers import query_set_to_df
 from src.graphs.line_plots import df_smoothed_line_plots
 from src.utils.datetime_helpers import (
     round_to_hour,
@@ -40,15 +40,11 @@ class Tweets:
         if true the fetch_query must be fully equal to the query used for fetching the tweets
         :return: all tweets who were fetched with fetch_query
         """
-        firestorm_tweets_selection = loads(
-            get_tweets_for_search_query(
-                fetch_query, full_match_required=full_match_required
-            ).to_json()
+        firestorm_tweets_query_set = get_tweets_for_search_query(
+            fetch_query, full_match_required=full_match_required
         )
 
-        return cls(
-            pd.DataFrame.from_records(firestorm_tweets_selection), filters=filters
-        )
+        return cls(query_set_to_df(firestorm_tweets_query_set), filters=filters)
 
     @property
     def tweets(self):
@@ -262,14 +258,14 @@ if __name__ == "__main__":
         print(name)
         print(len(group_df))
         print(group_df['is_offensive'].value_counts())
-        
-        
+
+
     laggards_tweets = firestorm_df[firestorm_df['user_type'] == 'laggard']
-    
+
     laggards_grouped = laggards_tweets.groupby('tweet_type')
-    
+
     print(laggards_grouped['is_offensive'].describe())
-    
+
     for name, group_df in laggards_grouped:
         print("====")
         print(name)

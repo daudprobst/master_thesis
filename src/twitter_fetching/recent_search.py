@@ -2,8 +2,8 @@ import csv
 import os
 from time import sleep
 from typing import Dict
+from datetime import datetime
 
-from src.db.schemes import *
 from src.twitter_fetching.requests_base import make_request
 
 RECENT_SEARCH_URL = "https://api.twitter.com/2/tweets/search/recent"
@@ -55,15 +55,12 @@ def recent_search(
         fetched_total += response.meta["result_count"]
 
         response.write_to_db()
-        response.write_to_csv()
 
         next_token = response.next_token
 
         if fetched_total >= tweet_fetch_limit:
-            print(
-                f"Fetched at least as much tweets as the fetch limit."
-                f"Aborting process here but returning last next_token"
-            )
+            print("Fetched at least as much tweets as the fetch limit.")
+            print("Aborting process here but returning last next_token")
             break
 
         if next_token:

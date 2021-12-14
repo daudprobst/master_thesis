@@ -4,7 +4,6 @@ import plotly.express as px
 
 def percentage_bar_plot_over_time(
     data: pd.DataFrame,
-    plot,
     grouping_var: str,
     factor_var: str,
     measure_type: str = "count",

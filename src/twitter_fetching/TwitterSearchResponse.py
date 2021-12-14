@@ -75,7 +75,7 @@ class TwitterSearchResponse:
 
     def write_to_csv(
         self,
-        filename: str = "/home/david/Desktop/Masterarbeit/twit_scrape/data/firestorms.csv",
+        filename: str,
     ) -> None:
         """
         Writes Tweet data (without user includes) to a specified csv file

@@ -1,4 +1,3 @@
-import pytz
 from datetime import datetime, timedelta, time, timezone
 from typing import Tuple
 
