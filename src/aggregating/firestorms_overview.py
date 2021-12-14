@@ -40,8 +40,7 @@ def get_firestorms_metadata(firestorm: Tweets, query_dict: dict) -> dict:
     # parsing datetime to more easily readable format
     for key, val in output_dict.items():
         if isinstance(val, datetime):
-            # we only take in full days in the dataset so it is sufficient to log just the date
-            output_dict[key] = val.date().isoformat()
+            output_dict[key] = val.isoformat()
 
     return output_dict
 

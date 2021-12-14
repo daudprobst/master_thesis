@@ -31,7 +31,7 @@ def tweet_type(tweet: dict) -> str:
     if not tweet["referenced_tweets"]:
         return "original tweet"
 
-    # TODO sometimes there are multiple referenced tweets like
+    # sometimes there are multiple referenced tweets like
     #  [{'id': 1392103648059080705, 'type': 'quoted'}, {'id': 1393088697713709057, 'type': 'replied_to'}]
     #  how should we treat these cases? For now we simply focus on the first tweet
     reference_type = tweet["referenced_tweets"][0]["type"]

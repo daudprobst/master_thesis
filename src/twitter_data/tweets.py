@@ -1,7 +1,6 @@
 import pytz
 from json import loads
 from typing import Sequence, Tuple
-from mongoengine.connection import connect
 
 import pandas as pd
 
@@ -46,6 +45,7 @@ class Tweets:
                 fetch_query, full_match_required=full_match_required
             ).to_json()
         )
+
         return cls(
             pd.DataFrame.from_records(firestorm_tweets_selection), filters=filters
         )
@@ -107,8 +107,7 @@ class Tweets:
                 lambda x: round_to_hour_slots(x)
             )
         except Exception:
-            # TODO -> implement more clean: current solution is very dirty. the upper code fails if we had already
-            # parased the dates before
+            # dirty solution: the upper code fails if we had already parsed the dates before
             pass
 
         # casting attributes to categorical
@@ -167,10 +166,8 @@ class Tweets:
 
         # setting up the output_df
         # index should contain hour (not just hours were tweets occured)
-        first_timestamp = self.tweets[grouping_var].min().floor("24H")
-        last_timestamp = self.tweets[grouping_var].max().ceil("24H") - pd.Timedelta(
-            hours=1
-        )
+        first_timestamp = self.tweets[grouping_var].min()
+        last_timestamp = self.tweets[grouping_var].max()
         hourly_timestamps = pd.date_range(first_timestamp, last_timestamp, freq="h")
 
         cols = [x[0] for x in to_calculate]
@@ -238,14 +235,43 @@ if __name__ == "__main__":
     from src.twitter_data.filters import default_filters_factory
 
     connect_to_mongo()
+    query_dict = QUERIES["pinkygloves"]
     firestorm = Tweets.from_query(
-        QUERIES["pinkygloves"]["query"],
-        filters=default_filters_factory(QUERIES["pinkygloves"]),
+        query_dict["query"],
+        filters=default_filters_factory(query_dict),
     )
 
-    print(firestorm.tweets.tail(3).reset_index().loc[1])
-    print(firestorm.tweets.head())
-    print(firestorm.tweets["created_at"].dtype)
-    print(list(firestorm.tweets["created_at"])[0])
-    print(list(firestorm.tweets["created_at"])[-1])
-    print(type(list(firestorm.tweets["created_at"])[0]))
+    firestorm_df = firestorm.tweets[
+        ["is_offensive", "tweet_type", "text", "_id", "user_type"]
+    ]
+
+    print("=====AGGRESSION BY TWEET TYPE")
+    firestorm_contingency_table = pd.crosstab(
+        firestorm_df["is_offensive"], firestorm_df["tweet_type"]
+    )
+    print(firestorm_contingency_table)
+
+
+"""
+    print(firestorm_df.head(5))
+    type_groups = firestorm_df.groupby('tweet_type')
+
+    print(type_groups['is_offensive'].describe())
+    for name, group_df in type_groups:
+        print("====")
+        print(name)
+        print(len(group_df))
+        print(group_df['is_offensive'].value_counts())
+        
+        
+    laggards_tweets = firestorm_df[firestorm_df['user_type'] == 'laggard']
+    
+    laggards_grouped = laggards_tweets.groupby('tweet_type')
+    
+    print(laggards_grouped['is_offensive'].describe())
+    
+    for name, group_df in laggards_grouped:
+        print("====")
+        print(name)
+        print(len(group_df))
+        print(group_df['is_offensive'].value_counts()) """
