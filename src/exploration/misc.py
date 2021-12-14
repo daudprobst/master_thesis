@@ -5,6 +5,8 @@ from statistics import mean
 
 file_name = os.getcwd() + "/data/firestorm_overview.csv"
 
+
+# Calculate cuts due to filtering
 with open(file_name, "r") as f:
     reader = csv.DictReader(f)
 

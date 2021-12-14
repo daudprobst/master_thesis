@@ -1,9 +1,8 @@
 from pandas.plotting import autocorrelation_plot
-import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import csv
-from src.analysis.timeseries import Timeseries
+from twitter_data.timeseries import Timeseries
 
 
 def plot_autocorrelation(file_name: str, output_folder: str, normalize=True, **kwargs):

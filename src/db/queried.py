@@ -32,7 +32,7 @@ QUERIES = {
     },
     "masken_csu": {
         "query": "#Nuesslein OR #Maskendeals OR #Maskenaffäre OR #Aserbaidschan OR #schwarzerFilz",
-        "disabled": True,  # disabled as tweets returned were not matching the firestorm well
+        "ts_disabled": True,  # disabled as tweets returned were not matching the firestorm well
         "data_start_date": "2021-02-18",
         "data_end_date": "2021-03-06",
         "true_start_date": "2021-02-25 11:00:00+0100",
@@ -47,7 +47,7 @@ QUERIES = {
     },
     "studierenWieBaerbock": {
         "query": "#studierenwieBaerbock OR #Bundescancelerin OR #baerbockfail",
-        "disabled": True,  # disabled for now as there are two spikes
+        "ts_disabled": True,  # disabled for now as there are two spikes
         "data_start_date": "2021-05-07",
         "data_end_date": "2021-05-24",
         "true_start_date": "2021-05-08 17:00:00+0200",
@@ -63,7 +63,8 @@ QUERIES = {
     },
     "helmeLookLikeShit": {
         "query": "#HelmeRettenLeben OR #lookslikeshit OR #saveslifes OR conversation_id:1108842805089177615",
-        "disabled": True,
+        "ts_disabled": True,
+        "fully_disabled": True,  # too small!
         "data_start_date": "2019-03-14",
         "data_end_date": "2019-03-31",
         "true_start_date": "2019-03-22 13:00:00+0100",
@@ -71,7 +72,8 @@ QUERIES = {
     },
     "studentinnenfutter": {
         "query": "#Studentinnenfutter OR Studierendenfutter OR conversation_id:1413204084694437888",
-        "disabled": True,
+        "ts_disabled": True,
+        "fully_disabled": True,  # too small!
         "data_start_date": "2021-07-01",
         "data_end_date": "2021-07-18",
         "true_start_date": "2021-07-09 08:00:00+0200",
@@ -80,7 +82,8 @@ QUERIES = {
     "dbUnternehmerischeEntscheidung": {
         "query": "conversation_id:1359969795068727296 OR conversation_id:1349076313315942404 OR "
         "conversation_id:1359926029909827585",
-        "disabled": True,
+        "ts_disabled": True,
+        "fully_disabled": True,  # too small!
         "data_start_date": "2021-02-04",
         "data_end_date": "2021-02-21",
         "true_start_date": None,
@@ -88,7 +91,8 @@ QUERIES = {
     },
     "thunbergsVsDB": {
         "query": "conversation_id:1206182673888219136",
-        "disabled": True,
+        "ts_disabled": True,
+        "fully_disabled": True,  # might reactivate this one
         "data_start_date": "2019-12-08",
         "data_end_date": "2019-12-25",
         "true_start_date": "2019-12-15 22:00:00+0100",

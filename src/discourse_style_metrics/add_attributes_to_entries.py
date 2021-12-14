@@ -114,7 +114,9 @@ def determine_offensiveness(tweet: dict, model, tokenizer):
                         )["text"]
                     except Exception:
                         # dirty fall back - however this occures very rarely
-                        print("Did not find a referenced tweet for this tweet. Falling back to the original tweet text.")
+                        print(
+                            "Did not find a referenced tweet for this tweet. Falling back to the original tweet text."
+                        )
                         tweet_txt = tweet["text"]
                     break
         else:

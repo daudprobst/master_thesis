@@ -1,11 +1,11 @@
 import csv
 import os
-from datetime import datetime
 
 from src.db.connection import connect_to_mongo
 from src.db.queried import QUERIES
 from src.twitter_data.filters import default_filters_factory
 from src.twitter_data.tweets import Tweets
+from src.exploration.firestorm_overview import get_firestorms_metadata
 
 
 def tweet_quantity_per_hour(firestorm: Tweets) -> list[int]:
@@ -28,24 +28,7 @@ def offensiveness_per_hour(firestorm: Tweets) -> list[float]:
     return [round(offensiveness_pct, 4) for offensiveness_pct in offensiveness_pct_raw]
 
 
-def get_firestorms_metadata(firestorm: Tweets, query_dict: dict) -> dict:
-    """Returns a selection of metadata for the firestorm described by the query
-    :param query_dict: the query dict containing the query itself as well as the end and start date
-    :return: A dictionary containing metadata such as length, average_aggression, start and end data for the firestorm
-    """
-
-    output_dict = firestorm.metadata()
-    output_dict.update(query_dict)
-
-    # parsing datetime to more easily readable format
-    for key, val in output_dict.items():
-        if isinstance(val, datetime):
-            output_dict[key] = val.isoformat()
-
-    return output_dict
-
-
-def firestorms_summarized_to_csvs(query_dicts: dict, write_settings: dict = None):
+def timeseries_summarized_to_csvs(query_dicts: dict, write_settings: dict = None):
     query_dicts = list(query_dicts.items())
     # Opening Files
     open_files = []
@@ -104,21 +87,21 @@ if __name__ == "__main__":
     query_dicts = {
         key: entry
         for (key, entry) in QUERIES.items()
-        if not ("disabled" in entry and entry["disabled"])
+        if not ("ts_disabled" in entry and entry["ts_disabled"])
     }
     write_settings = {
         "aggression": {
             "enabled": True,
-            "file_name": os.getcwd() + "/data/firestorm_aggressions.csv",
+            "file_name": os.getcwd() + "/data/timeseries/firestorm_aggressions.csv",
         },
         "quantities": {
             "enabled": True,
-            "file_name": os.getcwd() + "/data/firestorm_quantities.csv",
+            "file_name": os.getcwd() + "/data/timeseries/firestorm_quantities.csv",
         },
         "overview": {
             "enabled": True,
-            "file_name": os.getcwd() + "/data/firestorm_overview.csv",
+            "file_name": os.getcwd() + "/data/timeseries/timeseries_overview.csv",
         },
     }
 
-    firestorms_summarized_to_csvs(query_dicts, write_settings)
+    timeseries_summarized_to_csvs(query_dicts, write_settings)

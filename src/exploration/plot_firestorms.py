@@ -1,7 +1,7 @@
 import csv
 import os
 from src.graphs.line_plots import smoothed_line_trace
-from src.analysis.timeseries import Timeseries
+from twitter_data.timeseries import Timeseries
 
 import plotly.graph_objects as go
 
