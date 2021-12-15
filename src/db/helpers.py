@@ -5,7 +5,9 @@ import pandas as pd
 from mongoengine import QuerySet
 
 from src.db.connection import connect_to_mongo
-from src.db.queries.tweet_queries import get_tweets_for_search_query
+from src.db.queries.tweet_queries import get_tweets_for_search_query, get_tweets_for_ids
+from datetime import datetime
+from dateutil import parser
 
 
 def query_set_to_df(input_data: QuerySet) -> pd.DataFrame:
@@ -33,18 +35,15 @@ def update_search_query(old_query: str, full_new_query: str) -> None:
     )
 
 
-def delete_tweets(search_query: str) -> None:
-    """Handle with care! Deletes all tweets returned for the search query
+def delete_tweets(tweets_to_delete: QuerySet) -> None:
+    """Handle with care! Deletes all tweets that are passed in the database
 
-    :param search_query: search query for the tweets you want to deleted
+    :param tweets_to_delete: QuerySet of tweets that should be deleted
     """
 
-    tweets_to_delete = get_tweets_for_search_query(
-        search_query, full_match_required=True
-    )
     print(
-        f'WARNING: {len(tweets_to_delete)} tweets will be deleted for query "{search_query}". Stop the program now '
-        f"in case you want to cancel the deletion."
+        f'WARNING: {len(tweets_to_delete)} tweets will be deleted.'
+        f"Interrupt the program now if you want to cancel the deletion."
     )
     for i in reversed(range(10)):
         print(i)
@@ -53,8 +52,24 @@ def delete_tweets(search_query: str) -> None:
     tweets_to_delete.delete()
 
 
+def tweets_after_date(end_datetime: datetime, query: str):
+    tweets_matching_query = get_tweets_for_search_query(query)
+    # transform query_set to df and filter it
+    tweets_df = query_set_to_df(tweets_matching_query)
+    end_date_timestamp = end_datetime.timestamp() * 1000  # timestamp in ms
+    tweets_after_timestamp = tweets_df[
+        tweets_df["created_at"].apply(lambda x: x["$date"] > end_date_timestamp)
+    ]
+
+    # Transform back to query set
+    tweets_after_timestamp_query_set = get_tweets_for_ids(list(tweets_after_timestamp['_id']))
+    return tweets_after_timestamp_query_set
+
+
 if __name__ == "__main__":
     connect_to_mongo()
-    delete_tweets(
-        "#HelmeRettenLeben OR #lookslikeshit OR #saveslifes OR conversation_id:1108842805089177615"
-    )
+
+    query = "#pinkygloves OR #pinkygate"
+
+    tweets_to_delete = tweets_after_date(parser.parse("2021-04-26"), query)
+    delete_tweets(tweets_to_delete)

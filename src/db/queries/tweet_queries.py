@@ -8,6 +8,11 @@ def get_tweet_for_id(tweet_id) -> QuerySet:
     return Tweets.objects.get(id=tweet_id)
 
 
+def get_tweets_for_ids(tweet_ids: list[int]) -> QuerySet:
+    """Returns all matching tweets for the list of ids"""
+    return Tweets.objects(id__in=tweet_ids)
+
+
 def get_tweets_for_search_query(
     query: str, full_match_required: bool = False
 ) -> QuerySet:
