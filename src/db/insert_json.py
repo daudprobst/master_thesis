@@ -1,13 +1,13 @@
 import json
-import os
 from typing import Dict, List, Tuple
 
 import src.db.schemes as mongo_db
 from src.db.connection import connect_to_mongo
-from src.db.queries.tweet_queries import get_tweets_for_search_query
+from src.db.tweet_queries import get_tweets_for_search_query
 from src.discourse_style_metrics.add_attributes_to_entries import (
     add_attributes_to_tweets,
 )
+from src.utils.output_folders import DATA_FIRESTORMS_FOLDER
 
 
 def file_reader_generator(filename: str, encoding=None):
@@ -69,29 +69,25 @@ def clean_json(input_filname: str, output_filename: str) -> Tuple[int, int, int]
 if __name__ == "__main__":
     connect_to_mongo()
 
-    BASE_URL = os.getcwd() + "/data/firestorms/"
-
     # CONFIGURE THESE TWO
-    insert_filename = "helmeLookLikeShitFix.json"
-    query = "#HelmeRettenLeben OR #lookslikeshit OR #saveslifes OR conversation_id:1108842805089177615"
+    insert_filename = 'sarahlee.json'
+    query = 'sarah-lee OR sarahlee OR conversation_id:1447106528029429768 OR conversation_id:1447138134030962690 OR conversation_id:1448703968096526337 OR conversation_id:1447165382096310280'
     #######
 
     search_params = {"query": query}
-    print(len(get_tweets_for_search_query(query)))
-
-    print(f"Cleaning {insert_filename}\n")
-    clean_stats = clean_json(
-        BASE_URL + "dirty/" + insert_filename, BASE_URL + insert_filename
-    )
-
     print(
-        f"**Removed {clean_stats[0]} meta stats, {clean_stats[1]} user stats, {clean_stats[2]} media stats"
+        f"Before inserting the file {len(get_tweets_for_search_query(query))} tweets were found for the query."
     )
 
     print("\n**Starting to inserts tweets into the db now!")
-    insert_json_lines_file(BASE_URL + insert_filename, search_params=search_params)
+    insert_json_lines_file(
+        DATA_FIRESTORMS_FOLDER + insert_filename, search_params=search_params
+    )
 
     print("Done with Inserting!\n")
+    print(
+        f"After inserting the file {len(get_tweets_for_search_query(query))} tweets were found for the query."
+    )
 
     print("**Running preprocessing steps (aggression not added)!")
     add_attributes_to_tweets(

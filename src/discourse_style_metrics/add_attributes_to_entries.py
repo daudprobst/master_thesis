@@ -7,8 +7,8 @@ from timebudget import timebudget
 from src.db.connection import connect_to_mongo
 from src.db.helpers import query_set_to_df
 from src.db.queried import QUERIES
-from src.db.queries.tweet_mutations import add_attribute_to_tweet
-from src.db.queries.tweet_queries import get_tweet_for_id, get_tweets_for_search_query
+from src.db.tweet_mutations import add_attribute_to_tweet
+from src.db.tweet_queries import get_tweet_for_id, get_tweets_for_search_query
 from src.discourse_style_metrics.discourse_stlye_metrics import (
     contains_url,
     tweet_type,

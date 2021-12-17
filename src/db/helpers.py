@@ -1,75 +1,66 @@
 import json
-from time import sleep
 
 import pandas as pd
 from mongoengine import QuerySet
+import os
 
 from src.db.connection import connect_to_mongo
-from src.db.queries.tweet_queries import get_tweets_for_search_query, get_tweets_for_ids
-from datetime import datetime
-from dateutil import parser
+from src.db.schemes import Tweets
 
 
 def query_set_to_df(input_data: QuerySet) -> pd.DataFrame:
+    """Transforms the QuerySet into a DataFrame
+
+    :param input_data: The query set that should be transformed to a DataFrame
+    :return: Data as a DataFrame
+    """
     return pd.DataFrame.from_records(json.loads(input_data.to_json()))
 
 
-def update_search_query(old_query: str, full_new_query: str) -> None:
+def get_random_oids(collection, sample_size: int):
+    pipeline = [{"$project": {"_id": 1}}, {"$sample": {"size": sample_size}}]
+    return [s["_id"] for s in collection.aggregate(pipeline)]
+
+
+def get_random_documents(DocCls, sample_size: int) -> QuerySet:
+    doc_collection = DocCls._get_collection()
+    random_oids = get_random_oids(doc_collection, sample_size)
+    return DocCls.objects(id__in=random_oids)
+
+
+def tweet_sample_to_csv(sample_size: int, output_filename: str):
+    """A very specific implementation of gathering/filtering steps for collecting a set of sample tweets
+
+    :param sample_size: Number of tweets that should be in the sample
+    :param output_filename: Filename to which the sample should be written
     """
+    # we get a much larger sample size as we are applying a lot of filtering steps - unsafe implementation
+    sample = get_random_documents(Tweets, sample_size * 10).only("text", "tweet_type", "lang", "id")
+    sample_df = query_set_to_df(sample)
 
-    :param old_query: part of old query; All tweets whose query included this part will be changed
-    :param full_new_query: new query that these tweets are set to
-    """
-    tweets_new_query_before_update = get_tweets_for_search_query(full_new_query)
-    tweets_old_query = get_tweets_for_search_query(old_query)
+    # integrating retweet could mean that labelers are shown the same tweet multiple times
+    sample_df = sample_df[sample_df["tweet_type"] != "retweet without comment"]
+    # some older fetches (not used in thesis) have nan and are kicked out here!
+    sample_df = sample_df[sample_df["tweet_type"].notna()]  
+    # only use german tweets
+    sample_df = sample_df[sample_df.lang == "de"]
+    # shuffle random sample
+    sample_df = sample_df.sample(frac=1).reset_index(drop=True)
 
-    for tweet in tweets_old_query:
-        tweet.update(search_params__query=full_new_query)
-    updated_tweets = get_tweets_for_search_query(full_new_query)
+    if len(sample_df) < sample_size:
+        raise Exception("Method did not produce a big enough sample. Check the filtering steps in the method or your query.")
 
-    print(
-        f"Before the update there were {len(tweets_new_query_before_update)} tweets for the new query {full_new_query}"
-        f"and {len(tweets_old_query)} tweets for the old query {old_query}."
-        f"After the update the new query returns {len(updated_tweets)} tweets."
-        f'And {len(get_tweets_for_search_query("Klöckner"))} tweets. for the query "Klöckner"'
+    selected_sample = sample_df.head(sample_size)
+
+    selected_sample = selected_sample[["_id", "text"]]
+
+    selected_sample.to_csv(
+        output_filename,
+        sep="\t",
+        header=["id", "text"],
     )
-
-
-def delete_tweets(tweets_to_delete: QuerySet) -> None:
-    """Handle with care! Deletes all tweets that are passed in the database
-
-    :param tweets_to_delete: QuerySet of tweets that should be deleted
-    """
-
-    print(
-        f'WARNING: {len(tweets_to_delete)} tweets will be deleted.'
-        f"Interrupt the program now if you want to cancel the deletion."
-    )
-    for i in reversed(range(10)):
-        print(i)
-        sleep(1)
-    print("Deleting...")
-    tweets_to_delete.delete()
-
-
-def tweets_after_date(end_datetime: datetime, query: str):
-    tweets_matching_query = get_tweets_for_search_query(query)
-    # transform query_set to df and filter it
-    tweets_df = query_set_to_df(tweets_matching_query)
-    end_date_timestamp = end_datetime.timestamp() * 1000  # timestamp in ms
-    tweets_after_timestamp = tweets_df[
-        tweets_df["created_at"].apply(lambda x: x["$date"] > end_date_timestamp)
-    ]
-
-    # Transform back to query set
-    tweets_after_timestamp_query_set = get_tweets_for_ids(list(tweets_after_timestamp['_id']))
-    return tweets_after_timestamp_query_set
 
 
 if __name__ == "__main__":
     connect_to_mongo()
-
-    query = "#pinkygloves OR #pinkygate"
-
-    tweets_to_delete = tweets_after_date(parser.parse("2021-04-26"), query)
-    delete_tweets(tweets_to_delete)
+    tweet_sample_to_csv(300, f"{os.getcwd()}/data/aggr_sample/full_sample.csv")

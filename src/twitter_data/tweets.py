@@ -3,7 +3,7 @@ from typing import Sequence, Tuple
 
 import pandas as pd
 
-from src.db.queries.tweet_queries import get_tweets_for_search_query
+from src.db.tweet_queries import get_tweets_for_search_query
 from src.db.helpers import query_set_to_df
 from src.graphs.line_plots import df_smoothed_line_plots
 from src.utils.datetime_helpers import (

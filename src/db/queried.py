@@ -14,7 +14,6 @@ QUERIES = {
         "data_end_date": "2021-04-25",
         "true_start_date": "2021-04-13 22:00:00+0200",
         "true_end_date": "2021-04-15 16:00:00+0200"
-        # eng waves happens between 17th and 23d
     },
     "amthor": {
         "query": "#amthor OR #amthorgate OR #AmthorRuecktritt",
@@ -90,13 +89,13 @@ QUERIES = {
         "true_end_date": None,
     },
     "thunbergsVsDB": {
-        "query": "conversation_id:1206182673888219136",
+        "query": "conversation_id:1206182673888219136 OR (Greta DB) OR (Greta Bahn) OR (Thunberg DB) OR (Thunberg Bahn)",
         "ts_disabled": True,
-        "fully_disabled": True,  # might reactivate this one
+        "fully_disabled": False,
         "data_start_date": "2019-12-08",
         "data_end_date": "2019-12-25",
-        "true_start_date": "2019-12-15 22:00:00+0100",
-        "true_end_date": "2019-12-15 22:00:00+0100",
+        "true_start_date": "2019-12-15 22:00:00+0100",  # TODO !!!
+        "true_end_date": "2019-12-15 22:00:00+0100",  # TODO !!!
     },
     "kloecknerNestle": {
         "query": "(#Klöckner #Nestle) OR conversation_id:1135553266476040192",
@@ -120,6 +119,13 @@ QUERIES = {
         "true_start_date": "2021-07-17 18:00:00+0200",
         "true_end_date": "2021-07-19 00:00:00+0200",
     },
+    "sarahlee": {
+        "query": "sarah-lee OR sarahlee OR conversation_id:1447106528029429768 OR conversation_id:1447138134030962690 OR conversation_id:1448703968096526337 OR conversation_id:1447165382096310280",
+        "data_start_date": "2021-10-08",
+        "data_end_date": "2021-10-21",
+        "true_start_date": "2021-10-08 18:00:00+0200",  # TODO !!!
+        "true_end_date": "2021-10-21 00:00:00+0200",  # TODO !!!
+    }
 }
 
 

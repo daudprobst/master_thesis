@@ -67,6 +67,9 @@ class Tweets(Document):
     user_type = StringField()
     fetch_date = DateTimeField(default=datetime.utcnow)
     is_offensive = BooleanField()
+    includes_users = DictField()
+    includes_media = ListField()
+    includes_tweets = DictField()
 
 
 class Users(Document):
