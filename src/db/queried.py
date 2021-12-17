@@ -11,7 +11,7 @@ QUERIES = {
     "pinkygloves": {
         "query": "#pinkygloves OR #pinkygate",
         "data_start_date": "2021-04-09",
-        "data_end_date": "2021-05-29",
+        "data_end_date": "2021-04-25",
         "true_start_date": "2021-04-13 22:00:00+0200",
         "true_end_date": "2021-04-15 16:00:00+0200"
         # eng waves happens between 17th and 23d
@@ -140,3 +140,28 @@ for key in QUERIES:
     for entry in ["true_start_date", "true_end_date"]:
         if QUERIES[key][entry]:
             QUERIES[key][entry] = date_parser.parse(QUERIES[key][entry])
+
+
+def query_iterator(
+    query_dicts: dict = QUERIES,
+    include_timeseries_disabled: bool = True,
+    include_fully_disabled: bool = False,
+):
+
+    for key, query_dict in query_dicts.items():
+        if (
+            (not include_fully_disabled)
+            and ("fully_disabled" in query_dict)
+            and query_dict["fully_disabled"]
+        ):
+            print(f"Skipped {key} as it is fully disabled.")
+            continue
+        if (
+            (not include_timeseries_disabled)
+            and ("ts_disabled" in query_dict)
+            and query_dict["ts_disabled"]
+        ):
+            print(f"Skipped {key} as it is disabled for time series analysis.")
+            continue
+        print(f"Processing {key}")
+        yield key, query_dict

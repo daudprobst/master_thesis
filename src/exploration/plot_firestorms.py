@@ -1,51 +1,25 @@
-import csv
-import os
-from src.graphs.line_plots import smoothed_line_trace
-from twitter_data.timeseries import Timeseries
-
-import plotly.graph_objects as go
-
-
-def plot_ts_from_csv(file_name: str, output_folder: str, normalize=True, **kwargs):
-    with open(file_name, "r") as f:
-        reader = csv.reader(f)
-
-        for row in reader:
-            fig = go.Figure()
-            firestorm_name = row[0]
-            firestorm_ts = Timeseries(row[1:])
-            day_breaks = [
-                entry for entry in firestorm_ts.x if (entry % 24 == 0) and (entry != 0)
-            ]
-            for day_break in day_breaks:
-                fig.add_vline(
-                    x=day_break, line_width=1, line_dash="dot", line_color="grey"
-                )
-            if normalize:
-                firestorm_ts.normalize()
-            trace = smoothed_line_trace(
-                firestorm_ts.y, firestorm_ts.x, name=firestorm_name, window_size=0
-            )
-            fig.add_trace(trace)
-            fig.update_layout(**kwargs)
-            fig.write_image(f"{output_folder}/{firestorm_name}.jpg")
+from src.utils.output_folders import PLOT_RAW_QUANTITIES_FOLDER, DATA_RAW_QUANTS_FOLDER
+from src.ts_analysis.plot_ts_from_csv import plot_ts_from_csv
 
 
 if __name__ == "__main__":
     # Plotting quantity
 
-    input_file = os.getcwd() + "/data/firestorm_quantities.csv"
-    output_folder_name = os.getcwd() + "/plots/firestorm_overviews/quant_over_time"
+    input_file = DATA_RAW_QUANTS_FOLDER + "raw_quantities.csv"
+    output_folder_name = PLOT_RAW_QUANTITIES_FOLDER + "trends_smoothed/"
     plot_ts_from_csv(
         input_file,
         output_folder_name,
-        normalize=True,
-        title="Tweet Quantities over Time",
-        xaxis_title="Time",
-        yaxis_title="Quantity of Tweets per Hour (normalized [0-1])",
+        only_trend=True,
+        mark_day_breaks="ticks",
+        smoothing_window_size=23,
+        title=None,
+        xaxis_title=None,
+        yaxis_title="Moving Average of Tweets per Hour",
     )
 
     # Plotting aggression
+    """
     aggr_file = os.getcwd() + "/data/firestorm_aggressions.csv"
     aggr_folder_name = os.getcwd() + "/plots/firestorm_overviews/aggr_over_time"
     plot_ts_from_csv(
@@ -56,3 +30,21 @@ if __name__ == "__main__":
         xaxis_title="Time",
         yaxis_title="Aggression Rate per Hour (normalized [0-1])",
     )
+    """
+
+
+"""
+firestorm_quantity_trend_settings = 
+            fig.update_layout(
+                paper_bgcolor="white",
+                plot_bgcolor="white",
+                yaxis_showgrid=True,
+                yaxis_gridcolor="black",
+                yaxis_zeroline=True,
+                yaxis_zerolinecolor="black",
+                xaxis_zeroline=True,
+                xaxis_zerolinecolor="black",
+                xaxis_showgrid=False
+                
+            )
+"""

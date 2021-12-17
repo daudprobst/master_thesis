@@ -2,7 +2,7 @@ from pandas.plotting import autocorrelation_plot
 import matplotlib.pyplot as plt
 import os
 import csv
-from twitter_data.timeseries import Timeseries
+from ts_analysis.timeseries import Timeseries
 
 
 def plot_autocorrelation(file_name: str, output_folder: str, normalize=True, **kwargs):

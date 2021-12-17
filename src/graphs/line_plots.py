@@ -35,3 +35,33 @@ def smoothed_line_trace(
         y = signal.savgol_filter(y, window_size, polynomial_order)
 
     return go.Scatter(x=x, y=y, name=name)
+
+
+def mark_day_breaks(fig, x, mode=None):
+    if not mode:
+        return fig
+
+    day_breaks = [entry for entry in x if (entry % 24 == 0) and (entry != 0)]
+
+    if mode == "lines":
+        for day_break in day_breaks:
+            fig.add_vline(
+                x=day_break,
+                line_width=1,
+                line_dash="dot",
+                line_color="grey",
+            )
+
+    elif mode == "ticks":
+        # Add daily tickmarks
+        day_centers = [day_break - 12 for day_break in day_breaks]
+
+        fig.update_layout(
+            xaxis=dict(
+                tickmode="array",
+                tickvals=day_centers,
+                ticktext=[f"Day {index +1}" for index, _ in enumerate(day_centers)],
+            )
+        )
+
+    return fig

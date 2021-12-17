@@ -8,6 +8,10 @@ def equality_filter_factory(attribute: str, expected_value: any):
     return equality_filter
 
 
+def de_filter():
+    return equality_filter_factory("lang", "de")
+
+
 def between_filter_factory(attribute: str, lower_bound: any, upper_bound: any):
     def between_filter(tweets: pd.DataFrame):
         if not lower_bound or not upper_bound:
