@@ -39,7 +39,7 @@ def hourly_quantities_to_csv(
 
 def firestorm_overview_to_csv(
     queries: dict = QUERIES,
-    output_filename: str = f"{DATA_BASE_FOLDER}/data/firestorms_overview.csv",
+    output_filename: str = f"{DATA_BASE_FOLDER}/firestorms_overview.csv",
 ):
     with open(output_filename, "w") as f:
         writer = csv.writer(f)
@@ -61,5 +61,5 @@ def firestorm_overview_to_csv(
 
 if __name__ == "__main__":
     connect_to_mongo()
-    # firestorm_overview_to_csv()
+    firestorm_overview_to_csv()
     hourly_quantities_to_csv()

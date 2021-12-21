@@ -1,13 +1,13 @@
-import os
 from datetime import datetime, timedelta
 from typing import Tuple
 
 import plotly.graph_objects as go
 from src.db.connection import connect_to_mongo
-from src.db.queried import QUERIES
+from src.db.queried import QUERIES, query_iterator
 from src.graphs.line_plots import smoothed_line_trace
-from src.twitter_data.filters import equality_filter_factory
+from src.twitter_data.filters import de_filter
 from src.twitter_data.tweets import Tweets
+from src.utils.output_folders import PLOT_TS_PRUNING_FOLDER
 
 
 MIN_THRESHOLD = 100
@@ -15,6 +15,11 @@ THRESHOLD_FACTOR = 0.2
 
 
 def get_threshold(tweets: Tweets) -> int:
+    """Calculates the threshold of tweets after which a Firestorm is considered to start/end
+
+    :param tweets: collection of tweets for which the shitstorm should be calculated
+    :return: number of tweets that are the threshold
+    """
     return max(
         MIN_THRESHOLD, (THRESHOLD_FACTOR * max(tweets.hourwise_metrics["total_tweets"]))
     )
@@ -24,7 +29,7 @@ def get_firestorm_wrapping_datetime(tweets: Tweets) -> Tuple[datetime, datetime]
     """Calculates the start and end datetimes for a Firestorm by checking when the Firestorm
         crosses the defined threshold
 
-    :param tweets: [description]
+    :param tweets: Tweets for which the start and end should be determined
     :return: Tuple of 1) start_date (inclusive), end_date(exclusive)
     """
     threshold = get_threshold(tweets)
@@ -64,18 +69,17 @@ def get_firestorm_wrapping_datetime(tweets: Tweets) -> Tuple[datetime, datetime]
     return start_datetime, end_datetime
 
 
-def pruning_plot(query_dicts: dict, output_folder: str):
-    query_dicts = query_dicts.items()
+def pruning_plot(query_dicts: dict, output_folder: str) -> None:
+    """Generates a plot that visualizes the pruning process
 
-    for key, query_dict in query_dicts:
-        if "ts_disabled" in query_dict and query_dict["ts_disabled"]:
-            print(f"Skipped {key}")
-            continue
+    :param query_dicts: Dict of query_dicts for which the pruning process should be visualized
+    :param output_folder: visualization will be saved to this folder
+    """
 
-        print(f"Processing {key}")
-        firestorm = Tweets.from_query(
-            query_dict["query"], filters=[equality_filter_factory("lang", "de")]
-        )
+    for key, query_dict in query_iterator(
+        query_dicts=query_dicts, include_timeseries_disabled=False
+    ):
+        firestorm = Tweets.from_query(query_dict["query"], filters=[de_filter()])
 
         layout = go.Layout(
             xaxis={
@@ -87,15 +91,6 @@ def pruning_plot(query_dicts: dict, output_folder: str):
         )
 
         fig = go.Figure(layout=layout)
-
-        # add daily separation line
-        """
-        day_breaks = [entry for entry in firestorm.hourwise_metrics.index if entry.hour == 0]
-        for day_break in day_breaks:
-            fig.add_vline(
-                x=day_break, line_width=1, line_dash="dot", line_color="grey"
-            )
-        """
 
         # add quantity curve itself
         fig.add_trace(
@@ -113,6 +108,8 @@ def pruning_plot(query_dicts: dict, output_folder: str):
         # add selection
 
         start_date, end_date = get_firestorm_wrapping_datetime(firestorm)
+        print(f"{key} has start_date {start_date} and end_date {end_date}")
+
         if start_date:
             fig.add_vrect(
                 x0=start_date,
@@ -127,5 +124,4 @@ def pruning_plot(query_dicts: dict, output_folder: str):
 
 if __name__ == "__main__":
     connect_to_mongo()
-    output_folder_name = os.getcwd() + "/plots/timeseries/pruning/"
-    pruning_plot(QUERIES, output_folder_name)
+    pruning_plot(QUERIES, PLOT_TS_PRUNING_FOLDER)

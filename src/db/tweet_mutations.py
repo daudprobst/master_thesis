@@ -26,7 +26,7 @@ def add_attribute_to_tweet(tweet: Tweets, attribute: str, value) -> None:
 
 
 def update_search_query(tweets_to_update: QuerySet, full_new_query: str) -> None:
-    """ Updates the query_parameter of the tweets
+    """Updates the query_parameter of the tweets
     :param tweets_to_update: The tweets for which the query_parameter should be updated
     :param full_new_query: new query that these tweets are set to
     """

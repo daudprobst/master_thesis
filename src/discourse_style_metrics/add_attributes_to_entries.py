@@ -131,9 +131,9 @@ def determine_offensiveness(tweet: dict, model, tokenizer):
 
 if __name__ == "__main__":
     connect_to_mongo()
-    query_set = get_tweets_for_search_query(QUERIES["pinkygloves"]["query"])
+    query_set = get_tweets_for_search_query(QUERIES["sarahlee"]["query"])
 
-    print(f"Starting to calculate offensiveness for {len(query_set)} tweets")
+    tweets_df = query_set_to_df(query_set)
 
     with timebudget(f"Calculating offensiveness for {len(query_set)} tweets"):
         add_attributes_to_tweets(query_set, ["is_offensive"])

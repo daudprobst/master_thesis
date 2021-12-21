@@ -70,8 +70,8 @@ if __name__ == "__main__":
     connect_to_mongo()
 
     # CONFIGURE THESE TWO
-    insert_filename = 'sarahlee.json'
-    query = 'sarah-lee OR sarahlee OR conversation_id:1447106528029429768 OR conversation_id:1447138134030962690 OR conversation_id:1448703968096526337 OR conversation_id:1447165382096310280'
+    insert_filename = "sarahlee.json"
+    query = "sarah-lee OR sarahlee OR conversation_id:1447106528029429768 OR conversation_id:1447138134030962690 OR conversation_id:1448703968096526337 OR conversation_id:1447165382096310280"
     #######
 
     search_params = {"query": query}
