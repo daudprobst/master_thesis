@@ -5,8 +5,6 @@ from src.db.queried import QUERIES, query_iterator
 from src.db.helpers import query_set_to_df
 from src.db.schemes import Tweets
 
-from sklearn.preprocessing import LabelEncoder
-
 
 def load_hypothesis_dataset(
     attributes: list[str] = ["is_offensive", "tweet_type", "user_type"]
@@ -25,30 +23,29 @@ def load_hypothesis_dataset(
     return pd.concat(tweets_collection)
 
 
-def dummify_categoricals(firestorm_df: pd.DataFrame) -> pd.DataFrame:
+def dummify_categorical(
+    firestorm_df: pd.DataFrame, variable_name: str, value_to_drop: str = None
+) -> pd.DataFrame:
+
+    print("DEF")
+    # create dummies
+    dummies = pd.get_dummies(firestorm_df[variable_name])
+
+    # drop one dummy var (base category)
+    if value_to_drop:
+        dummies = dummies.drop(value_to_drop, axis=1)
+    else:  # drop first column if nothing else is specified
+        dummies = dummies.drop(dummies.columns[1], axis=1)
+
     firestorm_dummies = pd.concat(
-        [
-            firestorm_df,
-            pd.get_dummies(firestorm_df["tweet_type"]),
-            pd.get_dummies(firestorm_df["user_type"]),
-        ],
+        [firestorm_df, dummies],
         axis=1,
     )
 
-    # drop one dummy var
-    firestorm_dummies = firestorm_dummies.drop(
-        ["retweet without comment", "laggard"], axis=1
-    )
+    # drop now dummified categorical
+    firestorm_dummies = firestorm_dummies.drop(variable_name, axis=1)
 
-    aggr_enc = LabelEncoder()
-    firestorm_dummies["aggression_num"] = aggr_enc.fit_transform(
-        firestorm_df["is_offensive"]
-    )
-
-    firestorm_dummies = firestorm_dummies.drop(
-        ["is_offensive", "tweet_type", "user_type"], axis=1
-    )
-
+    # replace whacko variable names
     firestorm_dummies.columns = firestorm_dummies.columns.str.replace(" ", "_")
     firestorm_dummies.columns = firestorm_dummies.columns.str.replace("-", "_")
 
