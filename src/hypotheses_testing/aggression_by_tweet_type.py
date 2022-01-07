@@ -1,38 +1,69 @@
 import pandas as pd
 from src.db.connection import connect_to_mongo
-from src.hypotheses_testing.helpers import load_hypothesis_dataset, dummify_categoricals
+from src.hypotheses_testing.helpers import (
+    formula_generator,
+    load_hypothesis_dataset,
+    dummify_categorical,
+    print_chi2_contingency,
+    formula_generator,
+)
 
-
+from sklearn.preprocessing import LabelEncoder
 import statsmodels.formula.api as smf
 import statsmodels.api as sm
-from scipy.stats import chi2_contingency
 
 connect_to_mongo()
 
 firestorm_df = load_hypothesis_dataset(["is_offensive", "tweet_type"])
 
-
 # === Correlation Analysis
 firestorm_contingency_table = pd.crosstab(
     firestorm_df["is_offensive"], firestorm_df["tweet_type"]
 )
-print(firestorm_contingency_table)
-stat, p, dof, expected = chi2_contingency(firestorm_contingency_table)
-
-print("CHI_SQUARED:")
-print(f"stat: {stat}:")
-print(f"p-value: {p}:")
-print(f"degrees of freedom: {dof}")
-print(f"expected: {expected}")
+print_chi2_contingency(firestorm_contingency_table)
 
 
 # === LOG REG
-firestorm_dummies = dummify_categoricals(firestorm_df)
+# Prepare Aggression
+aggr_enc = LabelEncoder()
+firestorm_df["aggression_num"] = aggr_enc.fit_transform(firestorm_df["is_offensive"])
+firestorm_df = firestorm_df.drop("is_offensive", axis=1)
 
-model_tweet_type = smf.glm(
-    formula="aggression_num ~ original_tweet + reply + retweet_with_comment",
+# Prepare categoricals
+firestorm_dummies = dummify_categorical(
+    firestorm_df, "tweet_type", "retweet_without_comment"
+)
+
+# drop unneeded cols
+firestorm_dummies = firestorm_dummies.drop("_id", axis=1)
+
+print("====TWEET TYPE====")
+model = smf.glm(
+    formula=formula_generator("aggression_num", firestorm_dummies.columns),
     family=sm.families.Binomial(link=sm.genmod.families.links.logit),
     data=firestorm_dummies,
 ).fit()
 
-print(model_tweet_type.summary())
+print(model.summary())
+
+
+# ==== Lets check for the influence of user_type on tweet type
+
+
+firestorm_df_with_user = load_hypothesis_dataset(["is_offensive", "tweet_type", "user_type"])
+
+# Prepare categoricals
+
+user_tweet_type_dummies = dummify_categorical(firestorm_df_with_user, "tweet_type", None)
+user_tweet_type_dummies = dummify_categorical(
+    user_tweet_type_dummies, "user_type", "laggard"
+)
+
+print("====TWEET TYPE====")
+model2 = smf.glm(
+    formula="retweet_without_comment ~ active + hyper_active",
+    family=sm.families.Binomial(link=sm.genmod.families.links.logit),
+    data=user_tweet_type_dummies,
+).fit()
+
+print(model2.summary())
