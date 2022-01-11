@@ -1,3 +1,4 @@
+import pandas as pd
 from json import loads
 from typing import Dict, List
 
@@ -6,7 +7,7 @@ from timebudget import timebudget
 
 from src.db.connection import connect_to_mongo
 from src.db.helpers import query_set_to_df
-from src.db.queried import QUERIES
+from src.db.queried import QUERIES, query_iterator
 from src.db.tweet_mutations import add_attribute_to_tweet
 from src.db.tweet_queries import get_tweet_for_id, get_tweets_for_search_query
 from src.discourse_style_metrics.discourse_stlye_metrics import (
@@ -24,6 +25,9 @@ def add_attributes_to_tweets(
     if "user_type" in attributes:
         user_groups = calculate_user_groups(tweets)
 
+    if "user_activity" in attributes:
+        activities_for_author = activity_per_user(tweets)
+        
     if "is_offensive" in attributes:
         model, tokenizer = load_model("/models/german_hatespeech_detection_finetuned")
 
@@ -39,6 +43,8 @@ def add_attributes_to_tweets(
                     value = contains_url(tweet_dict)
                 elif attribute == "user_type":
                     value = user_type(tweet_dict, user_groups)
+                elif attribute == "user_activity":
+                    value = activities_for_author[tweet_dict['author_id']]
                 elif attribute == "is_offensive":
                     value = determine_offensiveness(tweet_dict, model, tokenizer)
                 else:
@@ -47,6 +53,17 @@ def add_attributes_to_tweets(
                     )
 
                 add_attribute_to_tweet(tweet, attribute, value)
+
+
+def activity_per_user(tweets: QuerySet) -> pd.DataFrame:
+    firestorm_df = query_set_to_df(tweets)
+    firestorms_user_activity_counts = (
+        firestorm_df.groupby(["author_id"]).size().reset_index(name="count")
+    )[['author_id', 'count']]
+
+    firestorms_user_activity_counts.set_index('author_id', inplace=True)
+
+    return firestorms_user_activity_counts.to_dict()['count']
 
 
 def calculate_user_groups(tweets: QuerySet) -> Dict:
@@ -131,9 +148,8 @@ def determine_offensiveness(tweet: dict, model, tokenizer):
 
 if __name__ == "__main__":
     connect_to_mongo()
-    query_set = get_tweets_for_search_query(QUERIES["sarahlee"]["query"])
 
-    tweets_df = query_set_to_df(query_set)
-
-    with timebudget(f"Calculating offensiveness for {len(query_set)} tweets"):
-        add_attributes_to_tweets(query_set, ["is_offensive"])
+    for key, query_dict in query_iterator(QUERIES):
+        query_set = get_tweets_for_search_query(query_dict["query"])
+        with timebudget(f"Calculating user activity for {len(query_set)} tweets"):
+            add_attributes_to_tweets(query_set, ["user_activity"])
