@@ -34,8 +34,11 @@ def dummify_categorical(
     dummies = pd.get_dummies(firestorm_df[variable_name])
 
     # replace whacko variable names
-    dummies.columns = dummies.columns.str.replace(" ", "_")
-    dummies.columns = dummies.columns.str.replace("-", "_")
+    try:
+        dummies.columns = dummies.columns.str.replace(" ", "_")
+        dummies.columns = dummies.columns.str.replace("-", "_")
+    except Exception:
+        print("Warning: Colnames could not be replace")
 
     # drop one dummy var (base category)
     if value_to_drop:

@@ -5,7 +5,6 @@ from src.hypotheses_testing.helpers import (
     load_hypothesis_dataset,
     dummify_categorical,
     print_chi2_contingency,
-    formula_generator,
 )
 
 from sklearn.preprocessing import LabelEncoder
@@ -50,11 +49,15 @@ print(model.summary())
 # ==== Lets check for the influence of user_type on tweet type
 
 
-firestorm_df_with_user = load_hypothesis_dataset(["is_offensive", "tweet_type", "user_type"])
+firestorm_df_with_user = load_hypothesis_dataset(
+    ["is_offensive", "tweet_type", "user_type"]
+)
 
 # Prepare categoricals
 
-user_tweet_type_dummies = dummify_categorical(firestorm_df_with_user, "tweet_type", None)
+user_tweet_type_dummies = dummify_categorical(
+    firestorm_df_with_user, "tweet_type", None
+)
 user_tweet_type_dummies = dummify_categorical(
     user_tweet_type_dummies, "user_type", "laggard"
 )
