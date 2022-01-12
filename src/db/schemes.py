@@ -66,6 +66,7 @@ class Tweets(Document):
     contains_url = BooleanField()
     user_type = StringField()
     user_activity = IntField()
+    firestorm_activity = IntField()
     fetch_date = DateTimeField(default=datetime.utcnow)
     is_offensive = BooleanField()
     includes_users = DictField()

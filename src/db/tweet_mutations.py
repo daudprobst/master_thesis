@@ -19,8 +19,10 @@ def add_attribute_to_tweet(tweet: Tweets, attribute: str, value) -> None:
         return tweet.update(set__user_type=value)
     elif attribute == "is_offensive":
         return tweet.update(set__is_offensive=value)
-    elif attribute == 'user_activity':
+    elif attribute == "user_activity":
         return tweet.update(set__user_activity=value)
+    elif attribute == "firestorm_activity":
+        return tweet.update(set__firestorm_activity=value)
     else:
         raise ValueError(
             f"No know operation exists for adding the attribute {attribute}"

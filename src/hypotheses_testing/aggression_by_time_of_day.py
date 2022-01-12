@@ -29,18 +29,16 @@ tweets_df["created_at"] = tweets_df["created_at"].apply(
     lambda x: unix_ms_to_utc_date(x["$date"])
 )
 ger_tz = pytz.timezone("Europe/Berlin")
-tweets_df["created_at"] = tweets_df["created_at"].apply(
-    lambda x: x.astimezone(ger_tz)
-)
+tweets_df["created_at"] = tweets_df["created_at"].apply(lambda x: x.astimezone(ger_tz))
 tweets_df["hour"] = tweets_df["created_at"].apply(lambda x: round_to_hour(x))
 tweets_df["six_hour_slot"] = tweets_df["created_at"].apply(
     lambda x: round_to_hour_slots(x)
 )
 
-tweets_df["time_of_day"] = tweets_df['six_hour_slot'].apply(lambda x: x.time)
+tweets_df["time_of_day"] = tweets_df["six_hour_slot"].apply(lambda x: x.time)
 
-tweets_df = tweets_df.drop(['hour', 'six_hour_slot', 'created_at'], axis=1)
-contingency_table = pd.crosstab(tweets_df["time_of_day"], tweets_df['is_offensive'])
+tweets_df = tweets_df.drop(["hour", "six_hour_slot", "created_at"], axis=1)
+contingency_table = pd.crosstab(tweets_df["time_of_day"], tweets_df["is_offensive"])
 print_chi2_contingency(contingency_table)
 
 
@@ -56,12 +54,14 @@ tweets_df = tweets_df.drop("is_offensive", axis=1)
 
 # Prepare categoricals
 firestorm_dummies = dummify_categorical(
-    tweets_df, "time_of_day", datetime.strptime('18:00:00', "%H:%M:%S").time()
+    tweets_df, "time_of_day", datetime.strptime("18:00:00", "%H:%M:%S").time()
 )
 
 # cast col names to string
 firestorm_dummies.columns = firestorm_dummies.columns.map(str)
-firestorm_dummies = firestorm_dummies.rename(columns={"00:00:00": "a", "06:00:00": "b", "12:00:00": "c"})
+firestorm_dummies = firestorm_dummies.rename(
+    columns={"00:00:00": "a", "06:00:00": "b", "12:00:00": "c"}
+)
 
 
 model = smf.glm(

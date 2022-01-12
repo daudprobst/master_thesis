@@ -9,7 +9,13 @@ from typing import Sequence
 
 
 def load_hypothesis_dataset(
-    attributes: list[str] = ["is_offensive", "tweet_type", "user_type"]
+    attributes: list[str] = [
+        "is_offensive",
+        "tweet_type",
+        "user_type",
+        "user_activity",
+        "firestorm_activity",
+    ]
 ) -> pd.DataFrame:
     tweets_collection = []
     for _, query_dict in query_iterator(QUERIES):
