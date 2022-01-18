@@ -45,6 +45,11 @@ def add_attributes_to_tweets(
     if "firestorm_activity" in attributes:
         timestamps_list = fs_timestamps(tweets)
 
+    if "firestorm_activity_rel" in attributes:
+        firestorm_df = query_set_to_df(tweets)
+        max_activity = firestorm_df["firestorm_activity"].max()
+        print(f"Comparing activity against max of {max_activity}")
+
     for i, tweet in enumerate(tweets):
         tweet_dict = loads(tweet.to_json())
         if i % 1000 == 0:
@@ -65,6 +70,8 @@ def add_attributes_to_tweets(
                         timestamps_list,
                         HOUR_IN__MS,
                     )
+                elif attribute == "firestorm_activity_rel":
+                    value = tweet_dict["firestorm_activity"] / max_activity
                 elif attribute == "is_offensive":
                     value = determine_offensiveness(tweet_dict, model, tokenizer)
                 else:
@@ -149,6 +156,11 @@ def fs_activity(entry_timestamp: int, all_timestamps: np.array, time_span: int):
     )
 
 
+def normalized_fs_activity(firestorm_query_set: QuerySet):
+    firestorm_df = query_set_to_df(firestorm_query_set)
+    firestorm_df
+
+
 def fs_timestamps(tweets: QuerySet) -> np.array:
     tweets_df = query_set_to_df(tweets)
     return np.array([entry["$date"] for entry in tweets_df["created_at"]])
@@ -195,8 +207,14 @@ def determine_offensiveness(tweet: dict, model, tokenizer):
 
 if __name__ == "__main__":
     connect_to_mongo()
-
+    """ 
     for key, query_dict in query_iterator(QUERIES):
         query_set = get_tweets_for_search_query(query_dict["query"])
-        with timebudget(f"Calculating firestorm activity for {len(query_set)} tweets"):
-            add_attributes_to_tweets(query_set, ["firestorm_activity"])
+        with timebudget(f"Calculating firestorm activity percentage for {len(query_set)} tweets"):
+            add_attributes_to_tweets(query_set, ["firestorm_activity_rel"]) """
+
+    query_set = get_tweets_for_search_query(QUERIES["sarahlee"]["query"])
+    with timebudget(
+        f"Calculating firestorm activity percentage for {len(query_set)} tweets"
+    ):
+        add_attributes_to_tweets(query_set, ["firestorm_activity_rel"])

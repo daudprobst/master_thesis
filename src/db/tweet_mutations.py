@@ -23,6 +23,8 @@ def add_attribute_to_tweet(tweet: Tweets, attribute: str, value) -> None:
         return tweet.update(set__user_activity=value)
     elif attribute == "firestorm_activity":
         return tweet.update(set__firestorm_activity=value)
+    elif attribute == "firestorm_activity_rel":
+        return tweet.update(set__firestorm_activity_rel=value)
     else:
         raise ValueError(
             f"No know operation exists for adding the attribute {attribute}"

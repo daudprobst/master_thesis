@@ -51,3 +51,7 @@ def user_type_mean_tweets():
         )
         print(df.groupby("author_id").count()["_id"].describe())
         print("=================")
+
+
+if __name__ == "__main__":
+    connect_to_mongo()

@@ -14,6 +14,7 @@ from mongoengine import (
     DynamicField,
     BooleanField,
     ListField,
+    FloatField,
 )
 
 
@@ -67,6 +68,7 @@ class Tweets(Document):
     user_type = StringField()
     user_activity = IntField()
     firestorm_activity = IntField()
+    firestorm_activity_rel = FloatField(min_value=0, max_value=1)
     fetch_date = DateTimeField(default=datetime.utcnow)
     is_offensive = BooleanField()
     includes_users = DictField()
