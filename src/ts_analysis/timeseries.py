@@ -29,6 +29,7 @@ class Timeseries:
     def normalize(self) -> None:
         max_val = max(self._y)
         self._y = [entry / max_val for entry in self._y]
+        return self._y
 
     def decompose(self) -> DecomposeResult:
         return seasonal_decompose(self.y, period=24)
@@ -86,12 +87,6 @@ if __name__ == "__main__":
 
     from src.utils.output_folders import DATA_RAW_QUANTS_FOLDER
 
-    with open(DATA_RAW_QUANTS_FOLDER + "raw_quantities.csv", "r") as f:
-        reader = csv.reader(f)
-
-        for row in reader:
-            ts = Timeseries(row[1:])
-            plt = ts.decompose().plot()
-            print(type(plt))
-            plt.show()
-            break  # TODO remove this limitation to just the first ts
+    timeseries_raw = load_ts_from_csv(
+        DATA_RAW_QUANTS_FOLDER + "raw_quantities2.csv", normalize=True
+    )
