@@ -1,9 +1,13 @@
 from datetime import datetime, timedelta, time, timezone
 from typing import Tuple
+import pytz
 
 
-def unix_ms_to_utc_date(unix_ms: int) -> datetime:
-    return datetime.fromtimestamp(float(unix_ms / 1000.0), tz=timezone.utc)
+def unix_ms_to_ger_date(unix_ms: int) -> datetime:
+    utc_timestamp = datetime.fromtimestamp(float(unix_ms / 1000.0), tz=timezone.utc)
+    ger_tz = pytz.timezone("Europe/Berlin")
+    ger_timestamp = utc_timestamp.astimezone(ger_tz)
+    return ger_timestamp
 
 
 def round_to_hour(t: datetime) -> datetime:

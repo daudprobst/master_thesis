@@ -1,4 +1,3 @@
-import pytz
 from typing import Sequence, Tuple
 
 import pandas as pd
@@ -9,7 +8,7 @@ from src.graphs.line_plots import df_smoothed_line_plots
 from src.utils.datetime_helpers import (
     round_to_hour,
     round_to_hour_slots,
-    unix_ms_to_utc_date,
+    unix_ms_to_ger_date,
 )
 from src.utils.conversions import float_to_pct
 
@@ -91,13 +90,8 @@ class Tweets:
         # adding date attributes
         try:
             tweets["created_at"] = tweets["created_at"].apply(
-                lambda x: unix_ms_to_utc_date(x["$date"])
+                lambda x: unix_ms_to_ger_date(x["$date"])
             )
-            ger_tz = pytz.timezone("Europe/Berlin")
-            tweets["created_at"] = tweets["created_at"].apply(
-                lambda x: x.astimezone(ger_tz)
-            )
-            tweets["created_at"] = tweets["created_at"]
             tweets["hour"] = tweets["created_at"].apply(lambda x: round_to_hour(x))
             tweets["six_hour_slot"] = tweets["created_at"].apply(
                 lambda x: round_to_hour_slots(x)
@@ -107,11 +101,17 @@ class Tweets:
             pass
 
         # casting attributes to categorical
-        if str(tweets.dtypes["tweet_type"]) != "category":
+        if (
+            "tweet_type" in tweets.columns
+            and str(tweets.dtypes["tweet_type"]) != "category"
+        ):
             tweets["tweet_type"] = tweets["tweet_type"].astype(TWEET_TYPE_LEVELS)
-        if str(tweets.dtypes["user_type"]) != "category":
+        if (
+            "user_type" in tweets.columns
+            and str(tweets.dtypes["user_type"]) != "category"
+        ):
             tweets["user_type"] = tweets["user_type"].astype(USER_TYPE_LEVELS)
-        if str(tweets.dtypes["lang"]) != "category":
+        if "lang" in tweets.columns and str(tweets.dtypes["lang"]) != "category":
             tweets["lang"] = tweets["lang"].astype("category")
 
         return tweets

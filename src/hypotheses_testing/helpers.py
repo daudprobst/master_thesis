@@ -2,72 +2,78 @@ from datetime import datetime
 from typing import Sequence
 
 import pandas as pd
-import pytz
 from scipy.stats import chi2_contingency
 from sklearn.preprocessing import LabelEncoder
 from src.utils.datetime_helpers import (
-    round_to_hour,
     round_to_hour_slots,
-    unix_ms_to_utc_date,
+    unix_ms_to_ger_date,
 )
-from src.ts_analysis.pruning_raw_firestorm import (
-    get_firestorm_wrapping_datetime,
-)
+from src.db.queried import QUERIES
 
 
-def prepare_data(firestorm_df: pd.DataFrame) -> pd.DataFrame:
+def prepare_data(tweets_df: pd.DataFrame) -> pd.DataFrame:
     # drop id col
-    firestorm_df = firestorm_df.drop("_id", axis=1)
+    tweets_df = tweets_df.drop("_id", axis=1)
 
     # calc time of day
-    firestorm_df["created_at"] = firestorm_df["created_at"].apply(
-        lambda x: unix_ms_to_utc_date(x["$date"])
-    )
-    ger_tz = pytz.timezone("Europe/Berlin")
-    firestorm_df["created_at"] = firestorm_df["created_at"].apply(
-        lambda x: x.astimezone(ger_tz)
-    )
-    firestorm_df["hour"] = firestorm_df["created_at"].apply(lambda x: round_to_hour(x))
-    firestorm_df["six_hour_slot"] = firestorm_df["created_at"].apply(
-        lambda x: round_to_hour_slots(x)
+    tweets_df["created_at"] = tweets_df["created_at"].apply(
+        lambda x: unix_ms_to_ger_date(x["$date"])
     )
 
-    firestorm_df["time_of_day"] = firestorm_df["six_hour_slot"].apply(lambda x: x.time)
+    tweets_df["six_hour_slot"] = tweets_df["created_at"].apply(
+        lambda x: round_to_hour_slots(x, 6)
+    )
 
-    firestorm_df.drop(["created_at", "hour", "six_hour_slot"], axis=1, inplace=True)
+    tweets_df["time_of_day"] = tweets_df["six_hour_slot"].apply(lambda x: x.time)
+
+    tweets_df["activity_epoch"] = rowwise_activity_epoch(tweets_df)
+
+    # Drop unnecessary vars
+    tweets_df.drop(
+        ["created_at", "firestorm_name", "six_hour_slot"], axis=1, inplace=True
+    )
 
     # time of day to categorical
-    firestorm_dummified = dummify_categorical(
-        firestorm_df, "time_of_day", datetime.strptime("18:00:00", "%H:%M:%S").time()
+    tweets_dummified = dummify_categorical(
+        tweets_df, "time_of_day", datetime.strptime("18:00:00", "%H:%M:%S").time()
     )
 
     # cast col names to string
-    firestorm_dummified.columns = firestorm_dummified.columns.map(str)
-    firestorm_dummified = firestorm_dummified.rename(
+    tweets_dummified.columns = tweets_dummified.columns.map(str)
+    tweets_dummified = tweets_dummified.rename(
         columns={
-            "00:00:00": "0am to 6 am",
-            "06:00:00": "6am to 12am",
-            "12:00:00": "12am to 6pm",
+            "00:00:00": "midnight_to_six_am",
+            "06:00:00": "six_am_to_noon",
+            "12:00:00": "noon_to_six_pm",
         }
     )
 
+    # activity_epoch dummify
+    tweets_dummified = dummify_categorical(tweets_dummified, "activity_epoch", "peak")
+
     # Prepare tweet type dummy vars
-    firestorm_dummified = dummify_categorical(
-        firestorm_dummified, "tweet_type", "retweet_without_comment"
+    tweets_dummified = dummify_categorical(
+        tweets_dummified, "tweet_type", "retweet_without_comment"
     )
 
-    firestorm_dummified = dummify_categorical(
-        firestorm_dummified, "user_type", "laggard"
-    )
+    tweets_dummified = dummify_categorical(tweets_dummified, "user_type", "active")
 
     # Prepare Aggression
     aggr_enc = LabelEncoder()
-    firestorm_dummified["aggression_num"] = aggr_enc.fit_transform(
-        firestorm_dummified["is_offensive"]
+    tweets_dummified["aggression_num"] = aggr_enc.fit_transform(
+        tweets_dummified["is_offensive"]
     )
-    firestorm_dummified = firestorm_dummified.drop("is_offensive", axis=1)
+    tweets_dummified = tweets_dummified.drop("is_offensive", axis=1)
 
-    return firestorm_dummified
+    return tweets_dummified
+
+
+def determine_time_epoch_from_queries_dict(
+    entry_date: datetime, firestorm_name: str, queries_dict: dict = QUERIES
+):
+    start_date = queries_dict[firestorm_name]["true_start_date"]
+    end_date = queries_dict[firestorm_name]["true_end_date"]
+    return determine_time_epoch(entry_date, start_date, end_date)
 
 
 def determine_time_epoch(
@@ -81,24 +87,22 @@ def determine_time_epoch(
         return "peak"
 
 
-def add_time_epoch_column(tweets_df: pd.DataFrame) -> pd.DataFrame:
-    wrapping_datetimes = get_firestorm_wrapping_datetime(tweets_df)
-    tweets_df["time_epoch"] = tweets_df.apply(
-        lambda row: determine_time_epoch(
-            row.created_at, wrapping_datetimes[0], wrapping_datetimes[1]
+def rowwise_activity_epoch(tweets_df: pd.DataFrame) -> pd.Series:
+    return tweets_df.apply(
+        lambda row: determine_time_epoch_from_queries_dict(
+            row.created_at, row.firestorm_name
         ),
         axis=1,
     )
-    return tweets_df
 
 
 def dummify_categorical(
-    firestorm_df: pd.DataFrame,
+    tweets_df: pd.DataFrame,
     variable_name: str,
     value_to_drop: str,
 ) -> pd.DataFrame:
     # create dummies
-    dummies = pd.get_dummies(firestorm_df[variable_name])
+    dummies = pd.get_dummies(tweets_df[variable_name])
 
     # replace whacko variable names
     try:
@@ -112,7 +116,7 @@ def dummify_categorical(
         dummies = dummies.drop(value_to_drop, axis=1)
 
     firestorm_dummies = pd.concat(
-        [firestorm_df, dummies],
+        [tweets_df, dummies],
         axis=1,
     )
 

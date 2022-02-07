@@ -34,26 +34,22 @@ class Timeseries:
     def decompose(self) -> DecomposeResult:
         return seasonal_decompose(self.y, period=24)
 
-    def save_plot(
+    def plot(
         self,
-        output_folder: str,
-        name: str,
         smoothing_window_size: int = 0,
         mark_day_breaks_mode: str = None,
         **kwargs,
-    ) -> None:
+    ) -> go.Figure():
         fig = go.Figure()
         fig = mark_day_breaks(fig, self.x, mark_day_breaks_mode)
         trace = smoothed_line_trace(
             self.y,
             self.x,
-            name=name,
             window_size=smoothing_window_size,
         )
         fig.add_trace(trace)
         fig.update_layout(**kwargs)
-
-        fig.write_image(f"{output_folder}{name}.jpg")
+        return fig
 
 
 def load_ts_from_csv(

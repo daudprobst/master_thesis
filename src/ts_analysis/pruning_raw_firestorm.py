@@ -1,3 +1,4 @@
+import pandas as pd
 from datetime import datetime, timedelta
 from typing import Tuple
 
@@ -11,28 +12,35 @@ from src.utils.output_folders import PLOT_TS_PRUNING_FOLDER
 
 
 MIN_THRESHOLD = 100
-THRESHOLD_FACTOR = 0.2
 
 
-def get_threshold(tweets: Tweets) -> int:
+def get_threshold(
+    tweets: Tweets, threshold_factor: float = 0.2, min_threshold=100
+) -> int:
     """Calculates the threshold of tweets after which a Firestorm is considered to start/end
 
     :param tweets: collection of tweets for which the shitstorm should be calculated
     :return: number of tweets that are the threshold
     """
     return max(
-        MIN_THRESHOLD, (THRESHOLD_FACTOR * max(tweets.hourwise_metrics["total_tweets"]))
+        min_threshold, (threshold_factor * max(tweets.hourwise_metrics["total_tweets"]))
     )
 
 
-def get_firestorm_wrapping_datetime(tweets: Tweets) -> Tuple[datetime, datetime]:
+def get_firestorm_wrapping_datetime(
+    tweets_df: pd.DataFrame, threshold: int = None
+) -> Tuple[datetime, datetime]:
     """Calculates the start and end datetimes for a Firestorm by checking when the Firestorm
         crosses the defined threshold
 
     :param tweets: Tweets for which the start and end should be determined
     :return: Tuple of 1) start_date (inclusive), end_date(exclusive)
     """
-    threshold = get_threshold(tweets)
+    tweets = Tweets(tweets_df)
+
+    if not threshold:
+        threshold = get_threshold(tweets)
+
     tweets_grouped_by_day = tweets.hourwise_metrics.groupby(lambda x: x.date)
 
     start_date = None
@@ -77,7 +85,8 @@ def pruning_plot(query_dicts: dict, output_folder: str) -> None:
     """
 
     for key, query_dict in query_iterator(
-        query_dicts=query_dicts, include_timeseries_disabled=False
+        query_dicts=query_dicts,
+        include_timeseries_disabled=True,  # plotting even those excluded here!
     ):
         firestorm = Tweets.from_query(query_dict["query"], filters=[de_filter()])
 
@@ -107,7 +116,7 @@ def pruning_plot(query_dicts: dict, output_folder: str) -> None:
 
         # add selection
 
-        start_date, end_date = get_firestorm_wrapping_datetime(firestorm)
+        start_date, end_date = get_firestorm_wrapping_datetime(firestorm.tweets)
         print(f"{key} has start_date {start_date} and end_date {end_date}")
 
         if start_date:
@@ -119,7 +128,7 @@ def pruning_plot(query_dicts: dict, output_folder: str) -> None:
                 layer="below",
                 line_width=0,
             ),
-        fig.write_image(output_folder + f"{key}_pruned.jpg")
+        fig.write_image(output_folder + f"{key}_pruned.pdf")
 
 
 if __name__ == "__main__":

@@ -44,16 +44,6 @@ if __name__ == "__main__":
         DATA_TIME_SERIES_FOLDER + "quantities_ts.csv", normalize=True, only_trend=False
     )
 
-    """ 
-    for ts_name, ts_obj in aggression_ts_list:
-        ts_obj.save_plot(
-            output_folder=PLOT_TS_AGGRESSION_FOLDER,
-            name=ts_name,
-            smoothing_window_size=5,
-            xaxis_title="Time",
-            yaxis_title="Tweets per Hour",
-        )
-    """
     for i in range(len(quants_ts_list)):
         ts_name = aggression_ts_list[i][0]
         plot_multivariate_ts(

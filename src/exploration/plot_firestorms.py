@@ -10,17 +10,15 @@ if __name__ == "__main__":
     quants_ts = load_ts_from_csv(input_file, only_trend=True, normalize=False)
 
     for ts_name, ts_obj in quants_ts:
-        ts_obj.save_plot(
-            output_folder=PLOT_RAW_QUANTITIES_FOLDER + "trends_smoothed/",
+        ts_obj.plot(
             name=ts_name,
             smoothing_window_size=23,
             xaxis_title="Time",
             yaxis_title="Tweets per Hour",
-        )
-        ts_obj.save_plot(
-            output_folder=PLOT_RAW_QUANTITIES_FOLDER + "trends/",
+        ).write_image(f"{PLOT_RAW_QUANTITIES_FOLDER}trends_smoothed/{ts_name}.jpg")
+        ts_obj.plot(
             name=ts_name,
             smoothing_window_size=0,
             xaxis_title="Time",
             yaxis_title="Tweets per Hour",
-        )
+        ).write_image(f"{PLOT_RAW_QUANTITIES_FOLDER}trends/{ts_name}.jpg")

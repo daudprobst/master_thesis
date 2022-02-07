@@ -1,7 +1,5 @@
-import os
-
 # WD
-WORKING_DIRECTORY = os.getcwd()
+WORKING_DIRECTORY = "/home/david/Desktop/Masterarbeit/twit_scrape"
 
 # Data folders
 
@@ -17,3 +15,7 @@ PLOT_TS_PRUNING_FOLDER = PLOT_BASE_FOLDER + "pruned_timeseries/pruning/"
 PLOT_TS_AGGRESSION_FOLDER = PLOT_BASE_FOLDER + "pruned_timeseries/aggression/"
 PLOT_TS_MIXED_FOLDER = PLOT_BASE_FOLDER + "pruned_timeseries/mixed/"
 PLOT_TS_CORRELATION = PLOT_BASE_FOLDER + "pruned_timeseries/correlation/"
+
+# Results folder
+
+RESULTS_BASE_FOLDER = WORKING_DIRECTORY + "/results/"
