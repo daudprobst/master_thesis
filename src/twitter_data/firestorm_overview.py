@@ -32,7 +32,8 @@ def get_firestorms_metadata(firestorm: Tweets, query_dict: dict) -> dict:
 
 
 def hourly_quantities_to_csv(
-    output_filename: str = DATA_TIME_SERIES_FOLDER + "firestorms_raw_tweet_quantities.csv",
+    output_filename: str = DATA_TIME_SERIES_FOLDER
+    + "firestorms_raw_tweet_quantities.csv",
     queries: dict = QUERIES,
 ) -> None:
     """Writes the hourly quantity of tweets for each of the firestorms to the output file -> time series of tweet quantities

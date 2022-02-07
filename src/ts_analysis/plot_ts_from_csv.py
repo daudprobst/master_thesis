@@ -36,11 +36,15 @@ def plot_multivariate_ts(
 if __name__ == "__main__":
 
     aggression_ts_list = load_ts_from_csv(
-        DATA_HYPE_PHASE_TS_FOLDER + "aggression_ts.csv", normalize=True, only_trend=False
+        DATA_HYPE_PHASE_TS_FOLDER + "aggression_ts.csv",
+        normalize=True,
+        only_trend=False,
     )
 
     quants_ts_list = load_ts_from_csv(
-        DATA_HYPE_PHASE_TS_FOLDER + "quantities_ts.csv", normalize=True, only_trend=False
+        DATA_HYPE_PHASE_TS_FOLDER + "quantities_ts.csv",
+        normalize=True,
+        only_trend=False,
     )
 
     for i in range(len(quants_ts_list)):
