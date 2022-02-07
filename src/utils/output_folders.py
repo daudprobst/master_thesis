@@ -4,9 +4,8 @@ WORKING_DIRECTORY = "/home/david/Desktop/Masterarbeit/twit_scrape"
 # Data folders
 
 DATA_BASE_FOLDER = WORKING_DIRECTORY + "/data/"
-DATA_RAW_QUANTS_FOLDER = DATA_BASE_FOLDER + "raw_quantities/"
-DATA_TIME_SERIES_FOLDER = DATA_BASE_FOLDER + "pruned_timeseries/"
-DATA_FIRESTORMS_FOLDER = DATA_BASE_FOLDER + "firestorms/"
+DATA_TIME_SERIES_FOLDER = DATA_BASE_FOLDER + "hourly_timeseries/"
+DATA_HYPE_PHASE_TS_FOLDER = DATA_BASE_FOLDER + "hourly_timeseries/hype_phase/"
 
 # Plot Folders
 PLOT_BASE_FOLDER = WORKING_DIRECTORY + "/plots/"

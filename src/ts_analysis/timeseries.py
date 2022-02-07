@@ -79,10 +79,8 @@ def load_ts_from_csv(
 
 
 if __name__ == "__main__":
-    import csv
-
-    from src.utils.output_folders import DATA_RAW_QUANTS_FOLDER
+    from src.utils.output_folders import DATA_TIME_SERIES_FOLDER
 
     timeseries_raw = load_ts_from_csv(
-        DATA_RAW_QUANTS_FOLDER + "raw_quantities2.csv", normalize=True
+        DATA_TIME_SERIES_FOLDER + "firestorms_raw_tweet_quantities.csv", normalize=True
     )

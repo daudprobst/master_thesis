@@ -7,7 +7,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from src.utils.output_folders import PLOT_BASE_FOLDER
 from src.ts_analysis.timeseries import Timeseries, load_ts_from_csv
-import seaborn as sns
 
 
 def user_aggr_plot():

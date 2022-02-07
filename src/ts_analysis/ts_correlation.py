@@ -1,8 +1,7 @@
 import pandas as pd
 import numpy as np
 from src.ts_analysis.timeseries import Timeseries, load_ts_from_csv
-from src.ts_analysis.plot_ts_from_csv import plot_multivariate_ts
-from src.utils.output_folders import DATA_TIME_SERIES_FOLDER, PLOT_TS_CORRELATION
+from src.utils.output_folders import DATA_HYPE_PHASE_TS_FOLDER
 import scipy.stats as stats
 
 
@@ -28,7 +27,7 @@ def ts_pearson_correlation(A: Timeseries, B: Timeseries, lag: int = 0):
     return stats.pearsonr(seriesA, seriesB)
 
 
-def significance_mark(p: int) -> str:
+def significance_mark(p: float) -> str:
     if p < 0.001:
         return "***"
     elif p < 0.01:
@@ -41,11 +40,11 @@ def significance_mark(p: int) -> str:
 
 if __name__ == "__main__":
     aggression_ts_list = load_ts_from_csv(
-        DATA_TIME_SERIES_FOLDER + "aggression_ts.csv", normalize=True
+        DATA_HYPE_PHASE_TS_FOLDER + "aggression_ts.csv", normalize=True
     )
 
     quants_ts_list = load_ts_from_csv(
-        DATA_TIME_SERIES_FOLDER + "quantities_ts.csv", normalize=True
+        DATA_HYPE_PHASE_TS_FOLDER + "quantities_ts.csv", normalize=True
     )
 
     zipped_ts = list(zip(aggression_ts_list, quants_ts_list))

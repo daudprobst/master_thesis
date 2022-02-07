@@ -3,10 +3,10 @@ from datetime import datetime
 
 from src.db.connection import connect_to_mongo
 from src.db.queried import query_iterator, QUERIES
-from src.ts_analysis.hourly_statistics import tweet_quantity_per_hour
+from src.ts_analysis.ts_to_csv import tweet_quantity_per_hour
 from src.twitter_data.filters import de_filter
 from src.twitter_data.tweets import Tweets
-from src.utils.output_folders import DATA_BASE_FOLDER, DATA_RAW_QUANTS_FOLDER
+from src.utils.output_folders import DATA_BASE_FOLDER, DATA_TIME_SERIES_FOLDER
 
 
 import os
@@ -32,7 +32,7 @@ def get_firestorms_metadata(firestorm: Tweets, query_dict: dict) -> dict:
 
 
 def hourly_quantities_to_csv(
-    output_filename: str = f"{DATA_RAW_QUANTS_FOLDER}/raw_quantities.csv",
+    output_filename: str = DATA_TIME_SERIES_FOLDER + "firestorms_raw_tweet_quantities.csv",
     queries: dict = QUERIES,
 ) -> None:
     """Writes the hourly quantity of tweets for each of the firestorms to the output file -> time series of tweet quantities
