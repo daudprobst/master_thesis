@@ -1,3 +1,1 @@
-A bunch of tools that I use for fetching and analyzing tweets.
-
-currently WIP...
+A collection of scripts that I used for my master thesis.
