@@ -134,19 +134,6 @@ def calculate_user_groups(tweets: QuerySet) -> Dict:
     return user_groups
 
 
-""" def fs_activity(entry_timestamp: int, all_timestamps: list[int], time_span: int = FIVETEEN_MINS_IN_MS):
-    return len(
-        list(
-            filter(
-                lambda timestamp: timestamp < entry_timestamp
-                and timestamp > (entry_timestamp - time_span),
-                all_timestamps,
-            )
-        )
-    )
-     """
-
-
 def fs_activity(entry_timestamp: int, all_timestamps: np.array, time_span: int):
     return len(
         all_timestamps[
@@ -207,11 +194,6 @@ def determine_offensiveness(tweet: dict, model, tokenizer):
 
 if __name__ == "__main__":
     connect_to_mongo()
-    """ 
-    for key, query_dict in query_iterator(QUERIES):
-        query_set = get_tweets_for_search_query(query_dict["query"])
-        with timebudget(f"Calculating firestorm activity percentage for {len(query_set)} tweets"):
-            add_attributes_to_tweets(query_set, ["firestorm_activity_rel"]) """
 
     query_set = get_tweets_for_search_query(QUERIES["sarahlee"]["query"])
     with timebudget(

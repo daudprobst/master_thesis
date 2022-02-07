@@ -9,6 +9,11 @@ from src.twitter_data.tweets import Tweets
 from src.utils.output_folders import DATA_BASE_FOLDER, DATA_RAW_QUANTS_FOLDER
 
 
+import os
+import csv
+from statistics import mean
+
+
 def get_firestorms_metadata(firestorm: Tweets, query_dict: dict) -> dict:
     """Returns a selection of metadata for the firestorm described by the query
     :param query_dict: the query dict containing the query itself as well as the end and start date
@@ -27,9 +32,14 @@ def get_firestorms_metadata(firestorm: Tweets, query_dict: dict) -> dict:
 
 
 def hourly_quantities_to_csv(
-    queries: dict = QUERIES,
     output_filename: str = f"{DATA_RAW_QUANTS_FOLDER}/raw_quantities.csv",
-):
+    queries: dict = QUERIES,
+) -> None:
+    """Writes the hourly quantity of tweets for each of the firestorms to the output file -> time series of tweet quantities
+
+    :param output_filename: filename (csv) to which the output timeseries should be written
+    :param queries: query_dicts for firestorms that should be included
+    """
     with open(output_filename, "w") as f:
         writer = csv.writer(f)
         for key, query_dict in query_iterator(queries):
@@ -38,9 +48,14 @@ def hourly_quantities_to_csv(
 
 
 def firestorm_overview_to_csv(
-    queries: dict = QUERIES,
     output_filename: str = f"{DATA_BASE_FOLDER}/firestorms_overview.csv",
-):
+    queries: dict = QUERIES,
+) -> None:
+    """For each firestorm generates some descriptive statistics and overview data and writes them to a csv
+
+    :param output_filename: filename (csv) to which the firestorm overview should be written
+    :param queries: query_dicts for firestorms that should be included
+    """
     with open(output_filename, "w") as f:
         writer = csv.writer(f)
         # Write Headers
@@ -57,6 +72,42 @@ def firestorm_overview_to_csv(
             firestorm = Tweets.from_query(query_dict["query"], filters=[de_filter()])
             firestorm_summary = get_firestorms_metadata(firestorm, query_dict)
             writer.writerow([key] + list(firestorm_summary.values()))
+
+
+def calculate_filter_cuts(
+    file_name=os.getcwd() + "/data/firestorm_overview.csv",
+) -> None:
+    """Prints statics on the amount of tweets that were cut due to filtering steps"
+
+    :param file_name: file name of a firestorms overview csv file
+    """
+    # Calculate cuts due to filtering for only germany
+    with open(file_name, "r") as f:
+        reader = csv.DictReader(f)
+
+        cuts = []
+        cuts2 = []
+        for row in reader:
+            firestorm_name = row["key"]
+            filter_log = (
+                row["filtering_lengths_log"]
+                .replace("[", "")
+                .replace("]", "")
+                .split(",")
+            )
+            filter_log = [int(entry) for entry in filter_log]
+            print(firestorm_name)
+            print(filter_log)
+            cut = 1 - (filter_log[1] / filter_log[0])
+            cuts.append(cut)
+            print(cut)
+
+            cut2 = 1 - (filter_log[2] / filter_log[1])
+            cuts2.append(cut2)
+
+        print("===================")
+        print(mean(cuts))
+        print(mean(cuts2))
 
 
 if __name__ == "__main__":
