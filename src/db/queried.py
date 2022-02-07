@@ -1,3 +1,8 @@
+"""
+    This file contains a list of all the search queries that were used for the thesis as well
+    as a helper function for looping through these queries.
+"""
+
 from datetime import datetime
 import pytz
 from src.utils.datetime_helpers import day_wrapping_datetimes
@@ -151,7 +156,13 @@ def query_iterator(
     include_timeseries_disabled: bool = True,
     include_fully_disabled: bool = False,
 ):
+    """An iterator that allows to conveniently iterate through all the firestorms that were fetched
 
+    :param query_dicts: A dictionary containing all queries, comparable to QUERIES , defaults to QUERIES
+    :param include_timeseries_disabled: include timeseries that have the ts_disabled attribute, defaults to True
+    :param include_fully_disabled: include timeseries that have the full_disabled attribute, defaults to False
+    :yield: A tuple containing (1) the firestorm name and (2) the query dict
+    """
     for key, query_dict in query_dicts.items():
         if (
             (not include_fully_disabled)

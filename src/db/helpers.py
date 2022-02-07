@@ -9,7 +9,7 @@ from src.db.schemes import Tweets
 
 
 def query_set_to_df(input_data: QuerySet) -> pd.DataFrame:
-    """Transforms the QuerySet into a DataFrame
+    """Transforms a mongoengine QuerySet into a DataFrame
 
     :param input_data: The query set that should be transformed to a DataFrame
     :return: Data as a DataFrame
@@ -17,19 +17,31 @@ def query_set_to_df(input_data: QuerySet) -> pd.DataFrame:
     return pd.DataFrame.from_records(json.loads(input_data.to_json()))
 
 
-def get_random_oids(collection, sample_size: int):
+def get_random_oids(collection, sample_size: int) -> list:
+    """Returns a random sample of oids from the mongoengine collection
+
+    :param collection: collection to get oids for
+    :param sample_size: number of oids to generate
+    :return: list of random oids
+    """
     pipeline = [{"$project": {"_id": 1}}, {"$sample": {"size": sample_size}}]
     return [s["_id"] for s in collection.aggregate(pipeline)]
 
 
 def get_random_documents(DocCls, sample_size: int) -> QuerySet:
+    """Retrieves a random sample from a db collection
+
+    :param DocCls: collection to retrieve the sample from
+    :param sample_size: size of the sample
+    :return: query set containing the random sample
+    """
     doc_collection = DocCls._get_collection()
     random_oids = get_random_oids(doc_collection, sample_size)
     return DocCls.objects(id__in=random_oids)
 
 
 def tweet_sample_to_csv(sample_size: int, output_filename: str):
-    """A very specific implementation of gathering/filtering steps for collecting a set of sample tweets
+    """A specific implementation of gathering/filtering steps for collecting a set of sample tweets
 
     :param sample_size: Number of tweets that should be in the sample
     :param output_filename: Filename to which the sample should be written
@@ -67,4 +79,4 @@ def tweet_sample_to_csv(sample_size: int, output_filename: str):
 
 if __name__ == "__main__":
     connect_to_mongo()
-    tweet_sample_to_csv(300, f"{os.getcwd()}/data/aggr_sample/full_sample.csv")
+    tweet_sample_to_csv(300, f"{os.getcwd()}/data/full_sample.csv")
